@@ -16,7 +16,7 @@ stages:
       - ${final-data-validation}
       - ${final-data-test}
   train:
-    cmd: python -m scripts.train
+    cmd: python -m src.train
       --model_name=${model_name}
       --batch_size=${batch_size}
       --learning_rate=${learning_rate}
