@@ -1,0 +1,43 @@
+vars:
+  - final-data-validation: data/validation.csv
+  - final-data-test: data/test.csv
+  - final-data-test-orig: data/test-input.txt
+  - final-data-test-cor: data/test-target.txt
+  - final-model: models/pytorch_model.bin
+  - final-predictions: outputs/predictions.txt
+  - edits-hyp: outputs/edits-hyp.txt
+  - edits-gold: outputs/edits-gold.txt
+  - results: results.json
+stages:
+  prepare-data:
+    cmd: python -m src.prepare_dataset
+      && errant_parallel -orig ${final-data-test-orig} -cor ${final-data-test-cor} -out ${edits-gold}
+    outs:
+      - ${final-data-validation}
+      - ${final-data-test}
+  train:
+    cmd: python -m scripts.train --model_name=${model_name} --batch_size=${batch_size} --num_train_epochs=${epochs}
+    params:
+      - model_name
+      - batch_size
+      - epochs
+    deps:
+      - ${final-data-validation}
+      - ${final-data-test}
+    outs:
+      - ${final-model}
+  tag:
+    cmd: python -m src.tag  --model_name models/ --test_csv ${final-data-test}
+    deps:
+      - ${final-model}
+    outs:
+      - ${final-predictions}
+  evaluate:
+    cmd: errant_parallel -orig ${final-data-test-orig} -cor ${final-predictions} -out ${edits-hyp}
+      && errant_compare -hyp ${edits-hyp} -ref ${edits-gold} | tail -3 | head -1 | jq -R 'split("\t")|{tp:.[0], fp:.[1], fn:.[2], p:.[3], r:.[4], f05:.[5]}' > ${results}
+      && cat ${results}
+    deps:
+      - ${final-predictions}
+    metrics:
+      - results.json:
+          cache: false

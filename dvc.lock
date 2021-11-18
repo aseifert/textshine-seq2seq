@@ -1,0 +1,25 @@
+schema: '2.0'
+stages:
+  prepare-data:
+    cmd: python -m src.prepare_dataset && errant_parallel -orig data/test-input.txt
+      -cor data/test-target.txt -out outputs/edits-gold.txt
+    outs:
+    - path: data/test.csv
+      md5: 48bf31a757a8026be1587d8b5efe8979
+      size: 545119
+    - path: data/validation.csv
+      md5: 4f54ef642cb1a7627d3b28a188e7e2af
+      size: 534495
+  evaluate:
+    cmd: errant_parallel -orig data/test-input.txt -cor outputs/predictions.txt -out
+      outputs/edits-hyp.txt && errant_compare -hyp outputs/edits-hyp.txt -ref outputs/edits-gold.txt
+      | tail -3 | head -1 | jq -R 'split("\t")|{tp:.[0], fp:.[1], fn:.[2], p:.[3],
+      r:.[4], f05:.[5]}' > metrics.json && cat metrics.json
+    deps:
+    - path: outputs/predictions.txt
+      md5: c7a87a5ee4152c06fd2d19b0d445dd96
+      size: 284544
+    outs:
+    - path: metrics.json
+      md5: bf4fdad74a8510f09b838096bf25bcc0
+      size: 102
