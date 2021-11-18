@@ -1,4 +1,8 @@
+import json
+from dataclasses import asdict
 from pathlib import Path
+
+import wandb
 
 PWD = Path(".").parent
 
@@ -41,3 +45,29 @@ def jfleg_tokenize(text):
     for replacement, orig in _JFLEG_TOKENIZER_MAPPINGs:
         text = text.replace(orig, replacement)
     return text
+
+
+def dump_args(out_path: Path, *args):
+    with open(out_path, "w") as fp:
+        d = {}
+        for arg in args:
+            for k, v in asdict(arg).items():
+                d[k] = v
+                if isinstance(v, Path):
+                    d[k] = str(v.resolve())
+        json.dump(d, fp, indent=4)
+
+
+def log_metrics(args_path: Path, results_path: Path, predictions_path: Path):
+    with open(args_path, "r") as fp:
+        args = json.load(fp)
+
+    with open(results_path, "r") as fp:
+        results = json.load(fp)
+
+    wandb.init(
+        project="hf-writing-assistant",
+        config=args,
+    )
+    wandb.log(results)
+    wandb.log({"predictions": [p.strip() for p in open(predictions_path, "r")]})

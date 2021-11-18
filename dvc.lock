@@ -3,6 +3,10 @@ stages:
   prepare-data:
     cmd: python -m src.prepare_dataset && errant_parallel -orig data/test-input.txt
       -cor data/test-target.txt -out outputs/edits-gold.txt
+    deps:
+    - path: src/prepare_dataset.py
+      md5: e5e031a04766db31859db5e5200edba9
+      size: 2408
     outs:
     - path: data/test.csv
       md5: 48bf31a757a8026be1587d8b5efe8979
@@ -14,12 +18,22 @@ stages:
     cmd: errant_parallel -orig data/test-input.txt -cor outputs/predictions.txt -out
       outputs/edits-hyp.txt && errant_compare -hyp outputs/edits-hyp.txt -ref outputs/edits-gold.txt
       | tail -3 | head -1 | jq -R 'split("\t")|{tp:.[0], fp:.[1], fn:.[2], p:.[3],
-      r:.[4], f05:.[5]}' > metrics.json && cat metrics.json
+      r:.[4], f05:.[5]}' > results.json && cat results.json && python -c 'from src.utils
+      import log_metrics; log_metrics("models/args.json", "results.json", "outputs/predictions.txt")'
     deps:
+    - path: data/test-input.txt
+      md5: 99da9d79b39196b864bec2dc865164aa
+      size: 259710
+    - path: outputs/edits-gold.txt
+      md5: ef1dc9b379e8d38e6263a34960d45f99
+      size: 730714
     - path: outputs/predictions.txt
-      md5: c7a87a5ee4152c06fd2d19b0d445dd96
-      size: 284544
+      md5: 1468649c10305f9022cc47dd2180c9f1
+      size: 260741
     outs:
-    - path: metrics.json
-      md5: bf4fdad74a8510f09b838096bf25bcc0
-      size: 102
+    - path: outputs/edits-hyp.txt
+      md5: 78e436cfce8850d20a4045a011b16a9f
+      size: 576448
+    - path: results.json
+      md5: edda25f1524d8eb42b8c5ce91d0f428e
+      size: 104

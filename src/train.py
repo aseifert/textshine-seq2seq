@@ -5,6 +5,8 @@ from typing import Optional
 from happytransformer import HappyTextToText, TTTrainArgs
 from transformers import HfArgumentParser  # type: ignore
 
+from src.utils import dump_args
+
 PWD = Path(__file__).parent
 PROJ_HOME = PWD.parent
 
@@ -32,6 +34,8 @@ class TrainingArgs:
 def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -> None:
     for path in asdict(data_args).values():
         assert not path or path.exists(), f"{path} does not exist"
+    assert data_args.out
+    dump_args(data_args.out / "args.json", model_args, data_args, train_args)
 
     model = HappyTextToText(model_name=model_args.model_name, model_type=model_args.model_type)
 

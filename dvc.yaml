@@ -46,6 +46,7 @@ stages:
     cmd: errant_parallel -orig ${final-data-test-orig} -cor ${final-predictions} -out ${edits-hyp}
       && errant_compare -hyp ${edits-hyp} -ref ${edits-gold} | tail -3 | head -1 | jq -R 'split("\t")|{tp:.[0], fp:.[1], fn:.[2], p:.[3], r:.[4], f05:.[5]}' > ${results}
       && cat ${results}
+      && python -c 'from src.utils import log_metrics; log_metrics("models/args.json", "${results}", "${final-predictions}")'
     deps:
       - ${edits-gold}
       - ${final-data-test-orig}
