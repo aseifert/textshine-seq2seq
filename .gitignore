@@ -205,7 +205,6 @@ cython_debug/
 
 # third-party ML tools
 **/secrets.toml
-.dvc/
 wandb/
 
 **/scraps/
