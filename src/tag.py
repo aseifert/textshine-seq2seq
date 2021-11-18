@@ -30,13 +30,15 @@ def tag(pipe, dataset: Dataset, max_length: int, tokenize: bool) -> List[str]:
     key_dataset = KeyDataset(dataset, "input")  # type: ignore
 
     # we predict only on the unique dataset
+    # FIXME: there must be a better way to construct the unique key dataset
+    key_dataset_unique = KeyDataset(Dataset.from_dict({"input": dataset.unique("input")}), "input")  # type: ignore
     unique_results = [
-        p["generated_text"] for p in tqdm(pipe(dataset.unique("input"), max_length=max_length))
+        p["generated_text"] for p in tqdm(pipe(key_dataset_unique, max_length=max_length))
     ]
 
     # and then we construct the full results out of the saved predictions
-    results_map = {key_dataset[i]: unique_results[i] for i in range(len(unique_results))}
-    full_results = [results_map[text] for text in dataset]
+    results_map = {key_dataset_unique[i]: unique_results[i] for i in range(len(unique_results))}
+    full_results = [results_map[text] for text in key_dataset]
 
     return full_results if not tokenize else [jfleg_tokenize(r) for r in full_results]
 
