@@ -1,4 +1,4 @@
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
@@ -27,9 +27,18 @@ class DataArgs:
 
 
 def tag(pipe, dataset: Dataset, max_length: int, tokenize: bool) -> List[str]:
-    dataset = KeyDataset(dataset, "input")  # type: ignore
-    results = [p["generated_text"] for p in tqdm(pipe(dataset, max_length=max_length))]
-    return results if not tokenize else [jfleg_tokenize(r) for r in results]
+    key_dataset = KeyDataset(dataset, "input")  # type: ignore
+
+    # we predict only on the unique dataset
+    unique_results = [
+        p["generated_text"] for p in tqdm(pipe(dataset.unique("input"), max_length=max_length))
+    ]
+
+    # and then we construct the full results out of the saved predictions
+    results_map = {key_dataset[i]: unique_results[i] for i in range(len(unique_results))}
+    full_results = [results_map[text] for text in dataset]
+
+    return full_results if not tokenize else [jfleg_tokenize(r) for r in full_results]
 
 
 def main(
