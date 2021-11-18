@@ -46,7 +46,7 @@ def main(
         tokenize=model_args.tokenize,
     )
 
-    with open(data_args.out, "w") as fp:
+    with open(data_args.out_path, "w") as fp:
         fp.write("\n".join(predictions))
 
 
