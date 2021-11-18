@@ -47,7 +47,11 @@ stages:
       && errant_compare -hyp ${edits-hyp} -ref ${edits-gold} | tail -3 | head -1 | jq -R 'split("\t")|{tp:.[0], fp:.[1], fn:.[2], p:.[3], r:.[4], f05:.[5]}' > ${results}
       && cat ${results}
     deps:
+      - ${edits-gold}
+      - ${final-data-test-orig}
       - ${final-predictions}
+    outs:
+      - ${edits-hyp}
     metrics:
       - results.json:
           cache: false
