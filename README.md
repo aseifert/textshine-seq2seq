@@ -2,4 +2,11 @@
 
 This repo contains my contribution to the HuggingFace community project.
 
-`dvc repro` will run the whole pipeline described in `dvc.yaml`
+Some steps you might want to take:
+
+```bash
+ENV_NAME="hf_writing_assistant"
+conda env create -n $ENV_NAME -f environment.yml  # create environment
+conda activate $ENV_NAME
+dvc repro  # run the whole pipeline (as described in `dvc.yaml`)
+```
