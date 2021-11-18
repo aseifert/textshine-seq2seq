@@ -12,6 +12,8 @@ stages:
   prepare-data:
     cmd: python -m src.prepare_dataset
       && errant_parallel -orig ${final-data-test-orig} -cor ${final-data-test-cor} -out ${edits-gold}
+    deps:
+      - src/prepare_dataset.py
     outs:
       - ${final-data-validation}
       - ${final-data-test}
@@ -27,6 +29,7 @@ stages:
       - learning_rate
       - epochs
     deps:
+      - src/train.py
       - ${final-data-validation}
       - ${final-data-test}
     outs:
@@ -34,6 +37,7 @@ stages:
   tag:
     cmd: python -m src.tag  --model_name models/ --test_csv ${final-data-test} --out_path ${final-predictions}
     deps:
+      - src/tag.py
       - ${final-model}
       - ${final-data-test}
     outs:
