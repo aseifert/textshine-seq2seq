@@ -36,9 +36,6 @@ def main(
     model_args: ModelArgs,
     data_args: DataArgs,
 ) -> None:
-    for path in asdict(data_args).values():
-        assert not path or path.exists(), f"{path} does not exist"
-
     dataset: Dataset = load_dataset("csv", data_files={"test": str(data_args.test_csv)})["test"]  # type: ignore
     pipe = pipeline("text2text-generation", model_args.model_name, device=0)
 
