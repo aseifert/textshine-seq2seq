@@ -211,3 +211,4 @@ wandb/
 **/_*.*
 models/
 outputs/
+data/
