@@ -16,10 +16,15 @@ stages:
       - ${final-data-validation}
       - ${final-data-test}
   train:
-    cmd: python -m scripts.train --model_name=${model_name} --batch_size=${batch_size} --num_train_epochs=${epochs}
+    cmd: python -m scripts.train
+      --model_name=${model_name}
+      --batch_size=${batch_size}
+      --learning_rate=${learning_rate}
+      --num_train_epochs=${epochs}
     params:
       - model_name
       - batch_size
+      - learning_rate
       - epochs
     deps:
       - ${final-data-validation}
@@ -27,9 +32,10 @@ stages:
     outs:
       - ${final-model}
   tag:
-    cmd: python -m src.tag  --model_name models/ --test_csv ${final-data-test}
+    cmd: python -m src.tag  --model_name models/ --test_csv ${final-data-test} --out_path ${final-predictions}
     deps:
       - ${final-model}
+      - ${final-data-test}
     outs:
       - ${final-predictions}
   evaluate:

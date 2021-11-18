@@ -9,6 +9,7 @@ dependencies:
   - pytorch::cudatoolkit=11.0
   - transformers
   - datasets
+  - dvc
   - pip
     - errant
     - happytransformer

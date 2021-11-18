@@ -23,7 +23,7 @@ class ModelArgs:
 @dataclass
 class DataArgs:
     test_csv: Path = PROJ_HOME / "data/test.csv"
-    out: Path = PROJ_HOME / "predictions.txt"
+    out_path: Path = PROJ_HOME / "predictions.txt"
 
 
 def tag(pipe, dataset: Dataset, max_length: int, tokenize: bool) -> List[str]:
