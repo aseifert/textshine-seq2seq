@@ -18,6 +18,7 @@ class ModelArgs:
     model_name: str
     max_length: int = 1024
     tokenize: bool = True
+    device: int = 0
 
 
 @dataclass
@@ -48,7 +49,7 @@ def main(
     data_args: DataArgs,
 ) -> None:
     dataset: Dataset = load_dataset("csv", data_files={"test": str(data_args.test_csv)})["test"]  # type: ignore
-    pipe = pipeline("text2text-generation", model_args.model_name, device=0)
+    pipe = pipeline("text2text-generation", model_args.model_name, device=model_args.device)
 
     predictions = tag(
         pipe=pipe,
