@@ -5,15 +5,15 @@ stages:
       -cor data/test-target.txt -out outputs/edits-gold.txt
     deps:
     - path: src/prepare_dataset.py
-      md5: e5e031a04766db31859db5e5200edba9
-      size: 2408
+      md5: 724653720c3b8282a31e27b545770f4d
+      size: 1045
     outs:
     - path: data/test.csv
-      md5: 48bf31a757a8026be1587d8b5efe8979
-      size: 545119
-    - path: data/validation.csv
-      md5: 4f54ef642cb1a7627d3b28a188e7e2af
-      size: 534495
+      md5: 2424e389c2d851cdfce0dfd9988fa7c6
+      size: 539957
+    - path: data/train.csv
+      md5: 5302ab3eca10a8bdcd46fd8778518333
+      size: 5574337
   evaluate:
     cmd: errant_parallel -orig data/test-input.txt -cor outputs/predictions.txt -out
       outputs/edits-hyp.txt && errant_compare -hyp outputs/edits-hyp.txt -ref outputs/edits-gold.txt
@@ -28,12 +28,12 @@ stages:
       md5: ef1dc9b379e8d38e6263a34960d45f99
       size: 730714
     - path: outputs/predictions.txt
-      md5: 1468649c10305f9022cc47dd2180c9f1
-      size: 260741
+      md5: 6d8f27808bf86c3628aaa81f8de2dad6
+      size: 270260
     outs:
     - path: outputs/edits-hyp.txt
-      md5: 78e436cfce8850d20a4045a011b16a9f
-      size: 576448
+      md5: 66c04fb30342d77602f4181cff82928e
+      size: 560055
     - path: results.json
-      md5: edda25f1524d8eb42b8c5ce91d0f428e
+      md5: 9b94337641433559f0cd8995f3007fdc
       size: 104
