@@ -59,7 +59,9 @@ class ABCDataset(ABC):
         return self.dataset.to_pandas()[["_input", "_target"]]  # type: ignore
 
     def write_csv(self, out_dir: Path):
-        self.get_two_column_df().to_csv(out_dir / f"{self.name}.csv", index=False)
+        self.get_two_column_df().to_csv(
+            out_dir / f"{self.name}.csv", index=False, header=["input", "target"]
+        )
 
     def write_texts(self, out_dir: Path):
         with open(out_dir / f"{self.name}-input.txt", "w") as fp:
