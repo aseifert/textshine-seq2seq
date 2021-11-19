@@ -46,7 +46,7 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     # t5_model_args.evaluate_during_training = True
     # t5_model_args.evaluate_during_training_verbose = True
     model = T5Model(
-        model_type=model_args.model_name, model_name=model_args.model_name, args=t5_model_args
+        model_type=model_args.model_type, model_name=model_args.model_name, args=t5_model_args
     )
     model.train_model(
         train_data=data_args.train_csv,
