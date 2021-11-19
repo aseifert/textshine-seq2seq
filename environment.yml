@@ -14,4 +14,4 @@ dependencies:
   - jq
   - pip
     - errant
-    - happytransformer
+    - simpletransformers

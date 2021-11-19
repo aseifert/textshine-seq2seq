@@ -2,7 +2,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Optional
 
-from happytransformer import HappyTextToText, TTTrainArgs
+from simpletransformers.t5 import T5Args, T5Model
 from transformers import HfArgumentParser  # type: ignore
 
 from src.utils import dump_args
@@ -37,15 +37,21 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     assert data_args.out
     dump_args(data_args.out / "args.json", model_args, data_args, train_args)
 
-    model = HappyTextToText(model_name=model_args.model_name, model_type=model_args.model_type)
-
-    tt_train_args = TTTrainArgs(
-        batch_size=train_args.batch_size,
-        learning_rate=train_args.learning_rate,
-        num_train_epochs=train_args.num_train_epochs,
+    t5_model_args = T5Args()
+    t5_model_args.train_batch_size = train_args.batch_size
+    t5_model_args.learning_rate = train_args.learning_rate
+    t5_model_args.num_train_epochs = train_args.num_train_epochs
+    # t5_model_args.evaluate_generated_text = True
+    # t5_model_args.evaluate_during_training = True
+    # t5_model_args.evaluate_during_training_verbose = True
+    model = T5Model(
+        model_type=model_args.model_name, model_name=model_args.model_name, args=t5_model_args
     )
-    model.train(str(data_args.train_csv), tt_train_args)
-    model.save(str(data_args.out))
+    model.train_model(
+        train_data=data_args.train_csv,
+        eval_data=data_args.eval_csv,
+    )
+    model.save_model(str(data_args.out))
 
 
 if __name__ == "__main__":
