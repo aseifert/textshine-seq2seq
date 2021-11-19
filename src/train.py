@@ -19,7 +19,7 @@ class ModelArgs:
 
 @dataclass
 class DataArgs:
-    train_csv: Path = PROJ_HOME / "data/validation.csv"
+    train_csv: Path = PROJ_HOME / "data/train.csv"
     eval_csv: Optional[Path] = PROJ_HOME / "data/test.csv"
     out: Optional[Path] = PROJ_HOME / "models/"
 

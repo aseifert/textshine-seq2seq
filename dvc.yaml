@@ -1,5 +1,5 @@
 vars:
-  - final-data-validation: data/validation.csv
+  - final-data-train: data/train.csv
   - final-data-test: data/test.csv
   - final-data-test-orig: data/test-input.txt
   - final-data-test-cor: data/test-target.txt
@@ -15,7 +15,7 @@ stages:
     deps:
       - src/prepare_dataset.py
     outs:
-      - ${final-data-validation}
+      - ${final-data-train}
       - ${final-data-test}
   train:
     cmd: python -m src.train
@@ -30,7 +30,7 @@ stages:
       - epochs
     deps:
       - src/train.py
-      - ${final-data-validation}
+      - ${final-data-train}
       - ${final-data-test}
     outs:
       - ${final-model}
