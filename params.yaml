@@ -1,4 +1,5 @@
 model_name: "t5-base"
-batch_size: 16
+batch_size: 4
 epochs: 5
 learning_rate: 5e-5
+hub_repo_name: aseifert/t5-base-jfleg-wi
