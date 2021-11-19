@@ -7,7 +7,7 @@ from tqdm import tqdm
 from transformers import HfArgumentParser, pipeline  # type: ignore
 from transformers.pipelines.base import KeyDataset
 
-from src.utils import jfleg_tokenize
+from src.utils import errant_tokenize
 
 PWD = Path(__file__).parent
 PROJ_HOME = PWD.parent
@@ -41,7 +41,7 @@ def tag(pipe, dataset: Dataset, max_length: int, tokenize: bool) -> List[str]:
     results_map = {key_dataset_unique[i]: unique_results[i] for i in range(len(unique_results))}
     full_results = [results_map[text] for text in key_dataset]
 
-    return full_results if not tokenize else [jfleg_tokenize(r) for r in full_results]
+    return full_results if not tokenize else [errant_tokenize(r) for r in full_results]
 
 
 def main(

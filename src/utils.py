@@ -6,7 +6,7 @@ import wandb
 
 PWD = Path(".").parent
 
-_JFLEG_TOKENIZER_MAPPINGs = [
+_ERRANT_TOKENIZER_MAPPINGs = [
     (" .", "."),
     (" ,", ","),
     (" ?", "?"),
@@ -35,14 +35,14 @@ _JFLEG_TOKENIZER_MAPPINGs = [
 ]
 
 
-def jfleg_detokenize(text: str) -> str:
-    for orig, replacement in _JFLEG_TOKENIZER_MAPPINGs:
+def errant_detokenize(text: str) -> str:
+    for orig, replacement in _ERRANT_TOKENIZER_MAPPINGs:
         text = text.replace(orig, replacement)
     return text
 
 
-def jfleg_tokenize(text):
-    for replacement, orig in _JFLEG_TOKENIZER_MAPPINGs:
+def errant_tokenize(text):
+    for replacement, orig in _ERRANT_TOKENIZER_MAPPINGs:
         text = text.replace(orig, replacement)
     return text
 

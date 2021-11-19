@@ -6,7 +6,7 @@ import pandas as pd
 from datasets import Dataset, interleave_datasets  # type: ignore
 from datasets.load import load_dataset
 
-from src.utils import jfleg_detokenize, jfleg_tokenize
+from src.utils import errant_detokenize, errant_tokenize
 
 
 class ABCDataset(ABC):
@@ -118,8 +118,8 @@ class JFLEGDataset(ABCDataset):
         def create_model_data(x):
             def apply_detokenize(x):
                 return {
-                    "input": jfleg_detokenize(x["sentence"]),
-                    "target": jfleg_detokenize(x["correction"]),
+                    "input": errant_detokenize(x["sentence"]),
+                    "target": errant_detokenize(x["correction"]),
                 }
 
             detokenized = apply_detokenize(x)
@@ -177,8 +177,8 @@ class _WiLocnessDataset(ABCDataset):
 
         def tokenize(x):
             return {
-                "text_tokenized": jfleg_tokenize(x["text"]),
-                "corrected_tokenized": jfleg_tokenize(x["corrected"]),
+                "text_tokenized": errant_tokenize(x["text"]),
+                "corrected_tokenized": errant_tokenize(x["corrected"]),
             }
 
         return dataset.map(apply_edits).remove_columns(["edits"]).map(clean).map(tokenize)
