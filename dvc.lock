@@ -17,8 +17,7 @@ stages:
   evaluate:
     cmd: errant_parallel -orig data/test-input.txt -cor outputs/predictions.txt -out
       outputs/edits-hyp.txt && errant_compare -hyp outputs/edits-hyp.txt -ref outputs/edits-gold.txt
-      | tail -3 | head -1 | jq -R 'split("\t")|{tp:.[0], fp:.[1], fn:.[2], p:.[3],
-      r:.[4], f05:.[5]}' > results.json && cat results.json && python -c 'from src.utils
+      -cat 2 -json_path results.json && cat results.json && python -c 'from src.utils
       import log_metrics; log_metrics("models/args.json", "results.json", "outputs/predictions.txt")'
     deps:
     - path: data/test-input.txt
@@ -35,5 +34,5 @@ stages:
       md5: 66c04fb30342d77602f4181cff82928e
       size: 560055
     - path: results.json
-      md5: 9b94337641433559f0cd8995f3007fdc
-      size: 104
+      md5: 5af13ac0de96210cbe1d8b18b9c2af33
+      size: 4344

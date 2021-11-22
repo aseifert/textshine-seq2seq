@@ -13,5 +13,5 @@ dependencies:
   - wandb
   - jq
   - pip
-    - errant
+    - git+https://github.com/aseifert/errant.git@feature/compare_m2_json  # patched for json export
     - happytransformer

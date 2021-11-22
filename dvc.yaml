@@ -44,7 +44,7 @@ stages:
       - ${final-predictions}
   evaluate:
     cmd: errant_parallel -orig ${final-data-test-orig} -cor ${final-predictions} -out ${edits-hyp}
-      && errant_compare -hyp ${edits-hyp} -ref ${edits-gold} | tail -3 | head -1 | jq -R 'split("\t")|{tp:.[0], fp:.[1], fn:.[2], p:.[3], r:.[4], f05:.[5]}' > ${results}
+      && errant_compare -hyp ${edits-hyp} -ref ${edits-gold} -cat 2 -json_path ${results}
       && cat ${results}
       && python -c 'from src.utils import log_metrics; log_metrics("models/args.json", "${results}", "${final-predictions}")'
     deps:
@@ -54,7 +54,7 @@ stages:
     outs:
       - ${edits-hyp}
     metrics:
-      - results.json:
+      - ${results}:
           cache: false
   upload-to-hub:
     cmd: python -c 'from happytransformer import HappyTextToText; model = HappyTextToText(model_name = "models/"); model.model.push_to_hub("${hub_repo_name}", use_auth_token=True); model.tokenizer.push_to_hub("${hub_repo_name}", use_auth_token=True)'
