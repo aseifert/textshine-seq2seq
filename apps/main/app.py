@@ -75,6 +75,9 @@ def main():
     st.markdown(
         f"Built by [@aseifert](https://twitter.com/therealaseifert) during the HF community event – [GitHub repo](https://github.com/aseifert/hf-writing-assistant) – Team Writing Assistant"
     )
+    st.markdown(
+        f"_Highlighting code thanks to [Gramformer](https://github.com/PrithivirajDamodaran/Gramformer)_"
+    )
     if start is not None:
         st.text(f"prediction took {time.time() - start:.2f}s")
 
