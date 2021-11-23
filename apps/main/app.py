@@ -39,8 +39,9 @@ def output(model, args, annotator, input_text):
         result = model.generate_text(prefixed_input_text, args=args).text
 
         try:
-            st.success(result)
             show_highlights(annotator, input_text, result)
+            st.write("")
+            st.success(result)
             # st.table(show_edits(annotator, input_text, result))
         except Exception as e:
             st.error("Some error occured!" + str(e))
