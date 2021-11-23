@@ -1,0 +1,7 @@
+# requirements.txt for use by hf space
+errant
+happytransformer
+beautifulsoup4
+pandas
+st-annotated-text
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.2.0/en_core_web_sm-3.2.0-py3-none-any.whl
