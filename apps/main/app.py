@@ -15,6 +15,14 @@ checkpoints = [
 ]
 
 
+def download_spacy_model(model="en"):
+    try:
+        spacy.load(model)
+    except OSError:
+        spacy.cli.download(model)  # type: ignore
+    return True
+
+
 @st.cache(suppress_st_warning=True, allow_output_mutation=True)
 def get_model(model_name):
     return HappyTextToText("T5", model_name)
