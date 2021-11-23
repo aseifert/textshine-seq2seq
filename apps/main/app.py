@@ -5,7 +5,7 @@ import spacy
 import streamlit as st
 from happytransformer import HappyTextToText, TTSettings
 
-from highlighter import show_edits, show_highlights
+from highlighter import show_highlights
 
 checkpoints = [
     "aseifert/t5-base-jfleg-wi",
@@ -33,21 +33,6 @@ def get_annotator(lang: str):
     return errant.load(lang)
 
 
-def output(model, args, annotator, input_text):
-    with st.spinner("Checking for errors 🔍"):
-        prefixed_input_text = "Grammar: " + input_text
-        result = model.generate_text(prefixed_input_text, args=args).text
-
-        try:
-            show_highlights(annotator, input_text, result)
-            st.write("")
-            st.success(result)
-            # st.table(show_edits(annotator, input_text, result))
-        except Exception as e:
-            st.error("Some error occured!" + str(e))
-            st.stop()
-
-
 def main():
     st.title("🤗 Writing Assistant")
     st.markdown(
@@ -70,15 +55,26 @@ def main():
     start = None
     if st.button("✍️ Check"):
         start = time.time()
-        output(model, args, annotator, input_text)
+        with st.spinner("Checking for errors 🔍"):
+            prefixed_input_text = "Grammar: " + input_text
+            result = model.generate_text(prefixed_input_text, args=args).text
+
+            try:
+                show_highlights(annotator, input_text, result)
+                st.write("")
+                st.success(result)
+            except Exception as e:
+                st.error("Some error occured!" + str(e))
+                st.stop()
 
     st.write("---")
     st.markdown(
-        f"Built by [@aseifert](https://twitter.com/therealaseifert) during the HF community event – [GitHub repo](https://github.com/aseifert/hf-writing-assistant) – Team Writing Assistant"
+        "Built by [@aseifert](https://twitter.com/therealaseifert) during the HF community event – 👨\u200d💻 [GitHub repo](https://github.com/aseifert/hf-writing-assistant) – 🤗 Team Writing Assistant"
     )
     st.markdown(
-        f"_Highlighting code thanks to [Gramformer](https://github.com/PrithivirajDamodaran/Gramformer)_"
+        "_Highlighting code thanks to [Gramformer](https://github.com/PrithivirajDamodaran/Gramformer)_"
     )
+
     if start is not None:
         st.text(f"prediction took {time.time() - start:.2f}s")
 
