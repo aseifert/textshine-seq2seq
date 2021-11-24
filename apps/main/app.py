@@ -10,11 +10,13 @@ from highlighter import show_highlights
 checkpoints = [
     "aseifert/t5-base-jfleg-wi",
     "aseifert/byt5-base-jfleg-wi",
-    "prithivida/grammar_error_correcter_v2",
+    "team-writing-assistant/t5-base-c4jfleg",
     "Modfiededition/t5-base-fine-tuned-on-jfleg",
+    "prithivida/grammar_error_correcter_v2",
 ]
 
 
+@st.cache
 def download_spacy_model(model="en"):
     try:
         spacy.load(model)
