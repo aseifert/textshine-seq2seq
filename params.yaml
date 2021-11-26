@@ -1,3 +1,5 @@
+# model_name: google/t5-v1_1-base
+# model_name: stas/mt5-tiny-random
 model_name: "t5-base"
 batch_size: 4
 epochs: 5

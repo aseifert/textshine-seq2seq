@@ -1,10 +1,14 @@
 import json
+import os
 from dataclasses import asdict
 from pathlib import Path
 
 import wandb
+from dotenv import load_dotenv
 
-PWD = Path(".").parent
+load_dotenv()
+PROJ_HOME = Path(__file__).parent.parent
+HF_API_KEY = os.environ.get("HF_API_TOKEN")
 
 _ERRANT_TOKENIZER_MAPPINGs = [
     (" .", "."),
