@@ -20,18 +20,8 @@ _ERRANT_TOKENIZER_MAPPINGs = [
     (" 'll ", "'ll "),  # I 'll
     (" 's ", "'s "),  # Laura 's (singular possive)
     ("s ' ", "s' "),  # years ' (plural possessive)
-    (" `` ", ' "'),
-    (" '' ", '" '),
-    # (" v", "n't"),
-    # ("2 0 0 6", "2006"),
-    # ("5 5", "55"),
-    # ("4 0 0", "400"),
-    # ("1 7-5 0", "1750"),
-    # ("2 0 %", "20%"),
-    # ("5 0", "50"),
-    # ("1 2", "12"),
-    # ("1 0", "10"),
-    # ('" ballast water', '"ballast water'),
+    (" `` ", ' "'),  # `` (left quote)
+    (" '' ", '" '),  # '' (right quote)
 ]
 
 
