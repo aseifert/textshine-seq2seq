@@ -25,14 +25,18 @@ def download_spacy_model(model="en"):
     return True
 
 
-@st.cache(suppress_st_warning=True, allow_output_mutation=True)
+@st.cache(allow_output_mutation=True)
 def get_model(model_name):
     return HappyTextToText("T5", model_name)
 
 
-@st.cache(suppress_st_warning=True, allow_output_mutation=True)
+@st.cache(allow_output_mutation=True)
 def get_annotator(lang: str):
     return errant.load(lang)
+
+
+def predict(model, args, text: str):
+    return model.generate_text(text, args=args).text
 
 
 def main():
@@ -59,7 +63,7 @@ def main():
         start = time.time()
         with st.spinner("Checking for errors 🔍"):
             prefixed_input_text = "Grammar: " + input_text
-            result = model.generate_text(prefixed_input_text, args=args).text
+            result = predict(model, args, prefixed_input_text)
 
             try:
                 show_highlights(annotator, input_text, result)
@@ -71,7 +75,7 @@ def main():
 
     st.write("---")
     st.markdown(
-        "Built by [@aseifert](https://twitter.com/therealaseifert) during the HF community event – 👨\u200d💻 [GitHub repo](https://github.com/aseifert/hf-writing-assistant) – 🤗 Team Writing Assistant"
+        "Built by [@therealaseifert](https://twitter.com/therealaseifert) during the HF community event – 👨\u200d💻 [GitHub repo](https://github.com/aseifert/hf-writing-assistant) – 🤗 Team Writing Assistant"
     )
     st.markdown(
         "_Highlighting code thanks to [Gramformer](https://github.com/PrithivirajDamodaran/Gramformer)_"
