@@ -61,7 +61,7 @@ class ABCDataset(ABC):
         df = self.get_two_column_df()
         df["prefix"] = "Grammar: "
         df["prefix _input _target".split()].to_csv(
-            out_dir / f"{self.name}.csv", index=False, header=["prefix", "input", "target"]
+            out_dir / f"{self.name}.csv", index=False, header=["prefix", "input_text", "target_text"]
         )
 
     def write_texts(self, out_dir: Path):
