@@ -14,6 +14,7 @@ stages:
       && errant_parallel -orig ${final-data-test-orig} -cor ${final-data-test-cor} -out ${edits-gold}
     deps:
       - src/prepare_dataset.py
+      - src/data.py
     outs:
       - ${final-data-train}
       - ${final-data-test}
