@@ -3,8 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
-from datasets import Dataset, interleave_datasets  # type: ignore
-from datasets.load import load_dataset
+from datasets import Dataset, interleave_datasets, load_dataset  # type: ignore
 
 from src.utils import errant_detokenize, errant_tokenize
 
@@ -28,7 +27,7 @@ class ABCDataset(ABC):
         self._add_task_prefix_(task_prefix.replace(":", "").strip() + ": ")
 
     def _add_task_prefix_(self, task_prefix) -> None:
-        self.dataset = self.dataset.map(lambda x: {"_input": task_prefix + x["_input"]})
+        self.dataset = self.dataset.map(lambda _: {"_prefix": task_prefix})
 
     def _rename_columns_(
         self,
@@ -59,8 +58,10 @@ class ABCDataset(ABC):
         return self.dataset.to_pandas()[["_input", "_target"]]  # type: ignore
 
     def write_csv(self, out_dir: Path):
-        self.get_two_column_df().to_csv(
-            out_dir / f"{self.name}.csv", index=False, header=["input", "target"]
+        df = self.get_two_column_df()
+        df["prefix"] = "Grammar: "
+        df["prefix _input _target".split()].to_csv(
+            out_dir / f"{self.name}.csv", index=False, header=["prefix", "input", "target"]
         )
 
     def write_texts(self, out_dir: Path):
