@@ -36,7 +36,12 @@ class ABCDataset(ABC):
         tokenized_original_col: Optional[str] = None,
         tokenized_corrected_col: Optional[str] = None,
     ) -> None:
-        if original_col and corrected_col and tokenized_original_col and tokenized_corrected_col:
+        if (
+            original_col
+            and corrected_col
+            and tokenized_original_col
+            and tokenized_corrected_col
+        ):
             self.dataset.rename_column_(original_col, "_input")
             self.dataset.rename_column_(corrected_col, "_target")
             self.dataset.rename_column_(tokenized_original_col, "_original")
@@ -61,7 +66,9 @@ class ABCDataset(ABC):
         df = self.get_two_column_df()
         df["prefix"] = "Grammar: "
         df["prefix _input _target".split()].to_csv(
-            out_dir / f"{self.name}.csv", index=False, header=["prefix", "input_text", "target_text"]
+            out_dir / f"{self.name}.csv",
+            index=False,
+            header=["prefix", "input_text", "target_text"],
         )
 
     def write_texts(self, out_dir: Path):
@@ -79,7 +86,9 @@ class ABCDataset(ABC):
 class StackedDataset(ABCDataset):
     def __init__(self, name: str, datasets: List[ABCDataset]):
         self._datasets = datasets
-        super().__init__(name=name, dataset=interleave_datasets([d.dataset for d in datasets]))
+        super().__init__(
+            name=name, dataset=interleave_datasets([d.dataset for d in datasets])
+        )
 
     def _clean_dataset(self, dataset):
         return dataset  # do nothing
@@ -131,10 +140,15 @@ class JFLEGDataset(ABCDataset):
 
         # "corrections" contains a list -- after exploding every item has its own row
         dataset = Dataset.from_pandas(dataset.to_pandas().explode("corrections", ignore_index=True))  # type: ignore
-        dataset.rename_column_(original_column_name="corrections", new_column_name="correction")
+        dataset.rename_column_(
+            original_column_name="corrections", new_column_name="correction"
+        )
 
         return (
-            dataset.map(clean).filter(remove_empty).filter(remove_identical).map(create_model_data)
+            dataset.map(clean)
+            .filter(remove_empty)
+            .filter(remove_identical)
+            .map(create_model_data)
         )
 
 
@@ -173,7 +187,10 @@ class _WiLocnessDataset(ABCDataset):
         def clean(x):
             return {
                 "text": x["text"].replace("\n", " ").replace("  ", " ").strip(),
-                "corrected": x["corrected"].replace("\n", " ").replace("  ", " ").strip(),
+                "corrected": x["corrected"]
+                .replace("\n", " ")
+                .replace("  ", " ")
+                .strip(),
             }
 
         def tokenize(x):
@@ -182,7 +199,9 @@ class _WiLocnessDataset(ABCDataset):
                 "corrected_tokenized": errant_tokenize(x["corrected"]),
             }
 
-        return dataset.map(apply_edits).remove_columns(["edits"]).map(clean).map(tokenize)
+        return (
+            dataset.map(apply_edits).remove_columns(["edits"]).map(clean).map(tokenize)
+        )
 
 
 class WiDataset(_WiLocnessDataset):
