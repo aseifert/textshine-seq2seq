@@ -43,6 +43,8 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     t5_model_args.learning_rate = train_args.learning_rate
     t5_model_args.num_train_epochs = train_args.num_train_epochs
     t5_model_args.wandb_project = "hf-writing-assistant"
+    t5_model_args.output_dir = "models/"
+    t5_model_args.overwrite_output_dir = True
     # t5_model_args.evaluate_generated_text = True
     # t5_model_args.evaluate_during_training = True
     # t5_model_args.evaluate_during_training_verbose = True
