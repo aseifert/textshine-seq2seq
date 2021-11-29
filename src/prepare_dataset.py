@@ -12,13 +12,13 @@ PROJ_HOME = PWD.parent
 @dataclass
 class DataArgs:
     out_dir: Path = PROJ_HOME / "data/"
-    task_prefix: str = "proofread"
+    task_prefix: str = "Grammar"
 
 
 def main(data_args: DataArgs):
     train_datasets = [
         JFLEGDataset("validation"),
-        WiDataset("train"),
+        # WiDataset("train"),
         # WiDataset("validation"),
         # LocnessDataset("validation"),
     ]
