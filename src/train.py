@@ -14,14 +14,14 @@ PROJ_HOME = PWD.parent
 @dataclass
 class ModelArgs:
     model_name: str
-    model_type: str = "T5"
+    model_type: Optional[str] = None
 
 
 @dataclass
 class DataArgs:
     train_csv: Path = PROJ_HOME / "data/train.csv"
     eval_csv: Optional[Path] = PROJ_HOME / "data/test.csv"
-    out: Optional[Path] = PROJ_HOME / "models/"
+    out: Path = PROJ_HOME / "models/"
 
 
 @dataclass
@@ -29,6 +29,7 @@ class TrainingArgs:
     batch_size: int = 16
     learning_rate: float = 5e-5
     num_train_epochs: int = 1
+    use_cuda: bool = False
 
 
 def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -> None:
@@ -45,12 +46,17 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     # t5_model_args.evaluate_generated_text = True
     # t5_model_args.evaluate_during_training = True
     # t5_model_args.evaluate_during_training_verbose = True
+    default_model_type = "mt5" if "mt5" in model_args.model_name else "t5"
+    model_type = (model_args.model_type or default_model_type).lower()
     model = T5Model(
-        model_type=model_args.model_type, model_name=model_args.model_name, args=t5_model_args
+        model_type=model_type, model_name=model_args.model_name, args=t5_model_args, use_cuda=train_args.use_cuda
     )
+    import pandas as pd
+    train_df = pd.read_csv(data_args.train_csv)
+    eval_df = pd.read_csv(data_args.eval_csv) if data_args.eval_csv else None
     model.train_model(
-        train_data=data_args.train_csv,
-        eval_data=data_args.eval_csv,
+        train_data=train_df,
+        eval_data=eval_df,
     )
     model.save_model(str(data_args.out))
 
