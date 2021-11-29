@@ -58,7 +58,8 @@ stages:
       - results.json:
           cache: false
   upload-to-hub:
-    cmd: python -c 'from happytransformer import HappyTextToText; model = HappyTextToText(model_name = "models/"); model.model.push_to_hub("${hub_repo_name}", use_auth_token=True); model.tokenizer.push_to_hub("${hub_repo_name}", use_auth_token=True)'
+    frozen: true
+    cmd: python -c 'from simpletransformers import T5; model = T5(model_name="models/"); model.model.push_to_hub("${hub_repo_name}", use_auth_token=True); model.tokenizer.push_to_hub("${hub_repo_name}", use_auth_token=True)'
     params:
       - hub_repo_name
     deps:
