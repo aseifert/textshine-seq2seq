@@ -7,7 +7,7 @@ annotator = errant.load("en")
 
 
 def _get_edits(o: str, c: str):
-    orig = annotator.parse(errant_tokenize(o))
+    orig = annotator.parse(o)
     cor = annotator.parse(errant_tokenize(c))
     alignment = annotator.align(orig, cor)
     edits = []
