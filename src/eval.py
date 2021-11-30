@@ -1,4 +1,7 @@
 import errant
+import pandas as pd
+
+from src.utils import PROJ, errant_tokenize, load_gold_edits
 
 annotator = errant.load("en")
 
@@ -14,9 +17,7 @@ def _get_edits(o: str, c: str):
     return edits
 
 
-def get_precision_recall_f05_score(
-    gold_edits, original_sents, target_sents, predicted_sents
-):
+def get_precision_recall_f05_score(gold_edits, original_sents, target_sents, predicted_sents):
     tps = []
     fps = []
     fns = []
@@ -46,4 +47,25 @@ def get_precision_recall_f05_score(
         ((1 + 0.5 ** 2) * (p * r) / (0.5 ** 2 * p + r)) if p > 0 else 0.0
     )  # sourcery skip: inline-immediately-returned-variable
 
-    return {"p": p, "r": r, "f05": f05}
+    return {"tp": tp, "fp": fp, "fn": fn, "p": p, "r": r, "f05": f05}
+
+
+def main():
+    with open(PROJ / "outputs/predictions.txt") as fp:
+        predicted_sents = [h.strip() for h in fp.readlines()]
+    eval_df = pd.read_csv(PROJ / "data/test.csv")
+    original_sents = eval_df["input_text"].tolist()
+    target_sents = eval_df["target_text"].tolist()
+    gold_edits = load_gold_edits(PROJ / "outputs/edits-gold.txt")
+    print(
+        get_precision_recall_f05_score(
+            gold_edits=gold_edits,
+            original_sents=original_sents,
+            target_sents=target_sents,
+            predicted_sents=predicted_sents,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()
