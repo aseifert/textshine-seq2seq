@@ -45,34 +45,32 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     # assert data_args.out
     # dump_args(data_args.out / "args.json", model_args, data_args, train_args)
 
-    t5_model_args = T5Args()
-    t5_model_args.min
-    t5_model_args.train_batch_size = train_args.batch_size
-    t5_model_args.learning_rate = train_args.learning_rate
-    t5_model_args.num_train_epochs = train_args.num_train_epochs
+    t5_args = T5Args()
+    t5_args.max_length = 512
+    t5_args.train_batch_size = train_args.batch_size
+    t5_args.learning_rate = train_args.learning_rate
+    t5_args.num_train_epochs = train_args.num_train_epochs
     if train_args.use_wandb:
-        t5_model_args.wandb_project = "hf-writing-assistant"
-    t5_model_args.output_dir = str(data_args.out)
-    t5_model_args.overwrite_output_dir = True
-    t5_model_args.evaluate_generated_text = True
-    t5_model_args.evaluate_during_training = True
-    t5_model_args.evaluate_during_training_verbose = True
-    # t5_model_args.evaluate_during_training_steps = 1000
+        t5_args.wandb_project = "hf-writing-assistant"
+    t5_args.output_dir = str(data_args.out)
+    t5_args.overwrite_output_dir = True
+    t5_args.evaluate_generated_text = True
+    t5_args.evaluate_during_training = True
+    t5_args.evaluate_during_training_verbose = True
+    # t5_args.evaluate_during_training_steps = 1000
     default_model_type = "mt5" if "mt5" in model_args.model_name else "t5"
     model_type = (model_args.model_type or default_model_type).lower()
     model = T5Model(
         model_type=model_type,
         model_name=model_args.model_name,
-        args=t5_model_args,
+        args=t5_args,
         use_cuda=train_args.use_cuda,
     )
 
     train_df = pd.read_csv(data_args.train_csv)
     eval_df = pd.read_csv(data_args.eval_csv) if data_args.eval_csv else None
     original_sents = eval_df["input_text"].tolist() if data_args.eval_csv else None
-    gold_edits = (
-        load_gold_edits(PROJ / "outputs/edits-gold.txt") if data_args.eval_csv else None
-    )
+    gold_edits = load_gold_edits(PROJ / "outputs/edits-gold.txt") if data_args.eval_csv else None
     assert len(gold_edits) == len(original_sents) == len(eval_df)
 
     @lru_cache
