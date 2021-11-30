@@ -4,13 +4,13 @@ annotator = errant.load("en")
 
 
 def _get_edits(o: str, c: str):
-    orig = annotator.parse(o)
-    cor = annotator.parse(c)
+    orig = annotator.parse(errant_tokenize(o))
+    cor = annotator.parse(errant_tokenize(c))
     alignment = annotator.align(orig, cor)
     edits = []
     for e in annotator.merge(alignment):
         e = annotator.classify(e)
-        edits.append("|||".join(e.to_m2().split("|||")[:3]))
+        edits.append("|||".join(e.to_m2()[2:].split("|||")[:3]))
     return edits
 
 
