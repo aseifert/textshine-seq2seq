@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass
-from functools import lru_cache, partial
+from functools import partial
 from pathlib import Path
 from typing import Optional
 
@@ -73,7 +73,6 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     gold_edits = load_gold_edits(PROJ / "outputs/edits-gold.txt") if data_args.eval_csv else None
     assert len(gold_edits) == len(original_sents) == len(eval_df)
 
-    @lru_cache
     def _get_precision_recall_f05_score(targets, predictions, key: str):
         return get_precision_recall_f05_score(
             gold_edits=gold_edits,
@@ -82,15 +81,15 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
             predicted_sents=predictions,
         )[key]
 
-    precision = partial(_get_precision_recall_f05_score, key="p")
-    recall = partial(_get_precision_recall_f05_score, key="r")
+    # precision = partial(_get_precision_recall_f05_score, key="p")
+    # recall = partial(_get_precision_recall_f05_score, key="r")
     f05 = partial(_get_precision_recall_f05_score, key="f05")
 
     model.train_model(
         train_data=train_df,
         eval_data=eval_df,
-        p=precision,
-        r=recall,
+        # p=precision,
+        # r=recall,
         f05=f05,
     )
     # model.save_model(str(data_args.out))
