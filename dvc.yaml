@@ -57,7 +57,6 @@ stages:
       - ${final-predictions}
     outs:
       - ${edits-hyp}
-      - ${results}
     metrics:
       - results.json:
           cache: false
