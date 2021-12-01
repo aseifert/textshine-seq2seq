@@ -3,7 +3,7 @@ vars:
   - final-data-test: data/test.csv
   - final-data-test-orig: data/test-input.txt
   - final-data-test-cor: data/test-target.txt
-  - final-model: models/pytorch_model.bin
+  - final-model: outputs/best_model/pytorch_model.bin
   - final-predictions: outputs/predictions.txt
   - edits-hyp: outputs/edits-hyp.txt
   - edits-gold: outputs/edits-gold.txt
@@ -35,28 +35,32 @@ stages:
       - ${final-data-test}
     outs:
       - ${final-model}
-  # tag:
-  #   cmd: python -m src.tag  --model_name models/ --test_csv ${final-data-test} --out_path ${final-predictions}
-  #   deps:
-  #     - src/tag.py
-  #     - ${final-model}
-  #     - ${final-data-test}
-  #   outs:
-  #     - ${final-predictions}
-  # evaluate:
-  #   cmd: errant_parallel -orig ${final-data-test-orig} -cor ${final-predictions} -out ${edits-hyp}
-  #     && errant_compare -hyp ${edits-hyp} -ref ${edits-gold} | tail -3 | head -1 | jq -R 'split("\t")|{tp:.[0], fp:.[1], fn:.[2], p:.[3], r:.[4], f05:.[5]}' > ${results}
-  #     && cat ${results}
-  #     && python -c 'from src.utils import log_metrics; log_metrics("models/args.json", "${results}", "${final-predictions}")'
-  #   deps:
-  #     - ${edits-gold}
-  #     - ${final-data-test-orig}
-  #     - ${final-predictions}
-  #   outs:
-  #     - ${edits-hyp}
-  #   metrics:
-  #     - results.json:
-  #         cache: false
+  tag:
+    cmd: python -m src.tag
+      --model_name outputs/best_model/
+      --batch_size=${batch_size}
+      --test_csv ${final-data-test}
+      --out_path ${final-predictions}
+    deps:
+      - src/tag.py
+      - ${final-model}
+      - ${final-data-test}
+    outs:
+      - ${final-predictions}
+  evaluate:
+    cmd: errant_parallel -orig ${final-data-test-orig} -cor ${final-predictions} -out ${edits-hyp}
+      && errant_compare -hyp ${edits-hyp} -ref ${edits-gold} | tail -3 | head -1 | jq -R 'split("\t")|{tp:.[0], fp:.[1], fn:.[2], p:.[3], r:.[4], f05:.[5]}' > ${results}
+      && cat ${results}
+    deps:
+      - ${edits-gold}
+      - ${final-data-test-orig}
+      - ${final-predictions}
+    outs:
+      - ${edits-hyp}
+      - ${results}
+    metrics:
+      - results.json:
+          cache: false
   upload-to-hub:
     frozen: true
     cmd: python -c 'from simpletransformers import T5; model = T5(model_name="models/"); model.model.push_to_hub("${hub_repo_name}", use_auth_token=True); model.tokenizer.push_to_hub("${hub_repo_name}", use_auth_token=True)'

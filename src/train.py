@@ -74,6 +74,10 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     assert len(gold_edits) == len(original_sents) == len(eval_df)
 
     def _get_precision_recall_f05_score(targets, predictions, key: str):
+        with open(PROJ / "outputs/tgts.txt", "w") as fp:
+            fp.write("\n".join(targets))
+        with open(PROJ / "outputs/preds.txt", "w") as fp:
+            fp.write("\n".join(predictions))
         return get_precision_recall_f05_score(
             gold_edits=gold_edits,
             original_sents=original_sents,
