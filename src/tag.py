@@ -29,19 +29,15 @@ class DataArgs:
 
 
 def tag(pipe, dataset: Dataset, batch_size: int, max_length: int, tokenize: bool) -> List[str]:
+    dataset = dataset.map(lambda x: {"input_text": x["prefix"] + ": " + x["input_text"]})
     key_dataset = KeyDataset(dataset, "input_text")  # type: ignore
 
     # we predict only on the unique dataset
     # FIXME: there must be a better way to construct the unique key dataset
     key_dataset_unique = KeyDataset(Dataset.from_dict({"input_text": dataset.unique("input_text")}), "input_text")  # type: ignore
-    prefixed_key_dataset_unique = key_dataset_unique.map(
-        lambda x: {"input_text": x["prefix"] + ": " + x["input_text"]}
-    )
     unique_results = [
         p["generated_text"]
-        for p in tqdm(
-            pipe(prefixed_key_dataset_unique, max_length=max_length, batch_size=batch_size)
-        )
+        for p in tqdm(pipe(key_dataset_unique, max_length=max_length, batch_size=batch_size))
     ]
 
     # and then we construct the full results out of the saved predictions
