@@ -58,6 +58,7 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     t5_args.evaluate_during_training = True
     t5_args.evaluate_during_training_verbose = True
     # t5_args.evaluate_during_training_steps = 1000
+    t5_args.use_multiprocessing = False
     default_model_type = "mt5" if "mt5" in model_args.model_name else "t5"
     model_type = (model_args.model_type or default_model_type).lower()
     model = T5Model(
