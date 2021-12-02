@@ -16,9 +16,10 @@ PROJ_HOME = PWD.parent
 @dataclass
 class ModelArgs:
     model_name: str
-    max_length: int = 1024
+    max_length: int = 512
     tokenize: bool = True
     device: int = 0
+    batch_size: int = 8
 
 
 @dataclass
@@ -27,14 +28,16 @@ class DataArgs:
     out_path: Path = PROJ_HOME / "predictions.txt"
 
 
-def tag(pipe, dataset: Dataset, max_length: int, tokenize: bool) -> List[str]:
-    key_dataset = KeyDataset(dataset, "input")  # type: ignore
+def tag(pipe, dataset: Dataset, batch_size: int, max_length: int, tokenize: bool) -> List[str]:
+    dataset = dataset.map(lambda x: {"input_text": x["prefix"] + ": " + x["input_text"]})
+    key_dataset = KeyDataset(dataset, "input_text")  # type: ignore
 
     # we predict only on the unique dataset
     # FIXME: there must be a better way to construct the unique key dataset
-    key_dataset_unique = KeyDataset(Dataset.from_dict({"input": dataset.unique("input")}), "input")  # type: ignore
+    key_dataset_unique = KeyDataset(Dataset.from_dict({"input_text": dataset.unique("input_text")}), "input_text")  # type: ignore
     unique_results = [
-        p["generated_text"] for p in tqdm(pipe(key_dataset_unique, max_length=max_length))
+        p["generated_text"]
+        for p in tqdm(pipe(key_dataset_unique, max_length=max_length, batch_size=batch_size))
     ]
 
     # and then we construct the full results out of the saved predictions
@@ -54,6 +57,7 @@ def main(
     predictions = tag(
         pipe=pipe,
         dataset=dataset,
+        batch_size=model_args.batch_size,
         max_length=model_args.max_length,
         tokenize=model_args.tokenize,
     )

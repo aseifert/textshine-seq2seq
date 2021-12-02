@@ -4,7 +4,8 @@ from pathlib import Path
 
 import wandb
 
-PWD = Path(".").parent
+PWD = Path(__file__).parent.resolve()
+PROJ = PWD.parent.resolve()
 
 _ERRANT_TOKENIZER_MAPPINGs = [
     (" .", "."),
@@ -20,8 +21,8 @@ _ERRANT_TOKENIZER_MAPPINGs = [
     (" 'll ", "'ll "),  # I 'll
     (" 's ", "'s "),  # Laura 's (singular possive)
     ("s ' ", "s' "),  # years ' (plural possessive)
-    (" `` ", ' "'),  # `` (left quote)
-    (" '' ", '" '),  # '' (right quote)
+    # (" `` ", ' "'),
+    # (" '' ", '" '),
 ]
 
 
@@ -34,7 +35,34 @@ def errant_detokenize(text: str) -> str:
 def errant_tokenize(text):
     for replacement, orig in _ERRANT_TOKENIZER_MAPPINGs:
         text = text.replace(orig, replacement)
+    text = (
+        text.replace(". . .", "...")
+        .replace("etc .", "etc.")
+        .replace("Mr .", "Mr.")
+        .replace("U .S .A", "U.S.A")
+    )
     return text
+
+
+def load_gold_edits(path):
+    gold_edits = []
+    with open(path) as fp:
+        edits = []
+        for line in fp:
+            is_sent = line.startswith("S ")
+            line = line[2:].strip()
+            if not line:
+                continue
+            if is_sent:
+                if edits:
+                    gold_edits.append(edits)
+                    edits = []
+                line = line[2:].strip()
+            else:
+                edits.append("|||".join(line.split("|||")[:3]))
+        if edits:
+            gold_edits.append(edits)
+    return gold_edits
 
 
 def dump_args(out_path: Path, *args):

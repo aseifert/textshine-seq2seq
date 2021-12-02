@@ -3,7 +3,7 @@ vars:
   - final-data-test: data/test.csv
   - final-data-test-orig: data/test-input.txt
   - final-data-test-cor: data/test-target.txt
-  - final-model: models/pytorch_model.bin
+  - final-model: outputs/best_model/pytorch_model.bin
   - final-predictions: outputs/predictions.txt
   - edits-hyp: outputs/edits-hyp.txt
   - edits-gold: outputs/edits-gold.txt
@@ -14,6 +14,7 @@ stages:
       && errant_parallel -orig ${final-data-test-orig} -cor ${final-data-test-cor} -out ${edits-gold}
     deps:
       - src/prepare_dataset.py
+      - src/data.py
     outs:
       - ${final-data-train}
       - ${final-data-test}
@@ -35,7 +36,11 @@ stages:
     outs:
       - ${final-model}
   tag:
-    cmd: python -m src.tag  --model_name models/ --test_csv ${final-data-test} --out_path ${final-predictions}
+    cmd: python -m src.tag
+      --model_name outputs/best_model/
+      --batch_size=${batch_size}
+      --test_csv ${final-data-test}
+      --out_path ${final-predictions}
     deps:
       - src/tag.py
       - ${final-model}
@@ -46,7 +51,6 @@ stages:
     cmd: errant_parallel -orig ${final-data-test-orig} -cor ${final-predictions} -out ${edits-hyp}
       && errant_compare -hyp ${edits-hyp} -ref ${edits-gold} -cat 2 -json_path ${results}
       && cat ${results}
-      && python -c 'from src.utils import log_metrics; log_metrics("models/args.json", "${results}", "${final-predictions}")'
     deps:
       - ${edits-gold}
       - ${final-data-test-orig}
@@ -57,7 +61,8 @@ stages:
       - ${results}:
           cache: false
   upload-to-hub:
-    cmd: python -c 'from happytransformer import HappyTextToText; model = HappyTextToText(model_name = "models/"); model.model.push_to_hub("${hub_repo_name}", use_auth_token=True); model.tokenizer.push_to_hub("${hub_repo_name}", use_auth_token=True)'
+    frozen: true
+    cmd: python -c 'from simpletransformers import T5; model = T5(model_name="models/"); model.model.push_to_hub("${hub_repo_name}", use_auth_token=True); model.tokenizer.push_to_hub("${hub_repo_name}", use_auth_token=True)'
     params:
       - hub_repo_name
     deps:
