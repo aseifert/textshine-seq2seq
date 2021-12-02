@@ -5,7 +5,7 @@ from typing import Optional
 
 import pandas as pd
 import torch
-from simpletransformers.t5 import T5Args, T5Model
+from simpletransformers.t5 import T5Args, T5Model  # type: ignore
 from transformers import HfArgumentParser  # type: ignore
 
 from src.eval import get_precision_recall_f05_score
@@ -68,10 +68,14 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     )
 
     train_df = pd.read_csv(data_args.train_csv)
-    eval_df = pd.read_csv(data_args.eval_csv) if data_args.eval_csv else None
-    original_sents = eval_df["input_text"].tolist() if data_args.eval_csv else None
+    eval_df = (
+        pd.read_csv(data_args.eval_csv).sample(1000, random_state=42)
+        if data_args.eval_csv
+        else None
+    )
+    original_sents = eval_df["input_text"].tolist() if eval_df else None
     gold_edits = load_gold_edits(PROJ / "outputs/edits-gold.txt") if data_args.eval_csv else None
-    assert len(gold_edits) == len(original_sents) == len(eval_df)
+    assert len(gold_edits) == len(original_sents) == len(eval_df)  # type: ignore
 
     def _get_precision_recall_f05_score(targets, predictions, key: str):
         with open(PROJ / "outputs/tgts.txt", "w") as fp:

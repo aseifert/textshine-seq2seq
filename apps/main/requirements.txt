@@ -1,5 +1,7 @@
 # requirements.txt for use by hf space
-happytransformer
+torch==1.10.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
+psutil
+fastt5
 beautifulsoup4
 pandas
 st-annotated-text

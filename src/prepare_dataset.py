@@ -1,9 +1,17 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from datasets import concatenate_datasets  # type: ignore
 from transformers import HfArgumentParser  # type: ignore
 
-from src.data import JFLEGDataset, LocnessDataset, StackedDataset, WiDataset
+from src.data import (
+    DatasetWriter,
+    JFLEGDatasetLoader,
+    LocnessDatasetLoader,
+    MerlinDatasetLoader,
+    PieDatasetLoader,
+    WiDatasetLoader,
+)
 
 PWD = Path(__file__).parent
 PROJ_HOME = PWD.parent
@@ -16,22 +24,36 @@ class DataArgs:
 
 
 def main(data_args: DataArgs):
-    train_datasets = [
-        JFLEGDataset("validation"),
-        # WiDataset("train"),
-        # WiDataset("validation"),
-        # LocnessDataset("validation"),
-    ]
-    test_datasets = [
-        JFLEGDataset("test"),
-    ]
+    jfleg = JFLEGDatasetLoader("validation").get_dataset()
+    jfleg_eval = jfleg.select(range(1000))
+    jfleg_train = jfleg.select(range(1001, len(jfleg)))
+    datasets = {
+        "train": concatenate_datasets(
+            [
+                jfleg_train,
+                MerlinDatasetLoader("german").get_dataset(),
+                PieDatasetLoader(take_n=50_000).get_dataset(),
+                # WiDatasetLoader("train").get_dataset(),
+                # WiDatasetLoader("validation").get_dataset(),
+                # LocnessDatasetLoader("validation").get_dataset(),
+            ],
+        ),
+        "eval": concatenate_datasets([jfleg_eval]),
+        "test": concatenate_datasets(
+            [
+                JFLEGDatasetLoader("test").get_dataset(),
+            ]
+        ),
+    }
 
-    stacked_train_dataset = StackedDataset("train", train_datasets)
-    stacked_test_dataset = StackedDataset("test", test_datasets)  # type: ignore
-
-    for stacked in (stacked_train_dataset, stacked_test_dataset):
-        stacked.write_csv(data_args.out_dir)
-        stacked.write_texts(data_args.out_dir)
+    for name, stacked in datasets.items():
+        print(name, stacked)
+        writer = DatasetWriter(
+            name,
+            stacked,
+        )
+        writer.write_csv(data_args.out_dir)
+        writer.write_texts(data_args.out_dir)
 
 
 if __name__ == "__main__":

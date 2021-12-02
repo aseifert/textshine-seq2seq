@@ -3,50 +3,19 @@ from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
-from datasets import Dataset, interleave_datasets, load_dataset  # type: ignore
+from datasets import Dataset, load_dataset  # type: ignore
 
 from src.utils import errant_detokenize, errant_tokenize
 
 
-class ABCDataset(ABC):
+class DatasetWriter:
     def __init__(
         self,
         name: str,
         dataset: Dataset,
-        original_col: Optional[str] = None,
-        corrected_col: Optional[str] = None,
-        tokenized_original_col: Optional[str] = None,
-        tokenized_corrected_col: Optional[str] = None,
-        task_prefix: str = "Grammar",
     ):
         self.name = name
-        self.dataset = self._clean_dataset(dataset)
-        self._rename_columns_(
-            original_col, corrected_col, tokenized_original_col, tokenized_corrected_col
-        )
-        self._add_task_prefix_(task_prefix.replace(":", "").strip())
-
-    def _add_task_prefix_(self, task_prefix) -> None:
-        self.dataset = self.dataset.map(lambda _: {"_prefix": task_prefix})
-
-    def _rename_columns_(
-        self,
-        original_col: Optional[str] = None,
-        corrected_col: Optional[str] = None,
-        tokenized_original_col: Optional[str] = None,
-        tokenized_corrected_col: Optional[str] = None,
-    ) -> None:
-        if original_col and corrected_col and tokenized_original_col and tokenized_corrected_col:
-            self.dataset.rename_column_(original_col, "_input")
-            self.dataset.rename_column_(corrected_col, "_target")
-            self.dataset.rename_column_(tokenized_original_col, "_original")
-            self.dataset.rename_column_(tokenized_corrected_col, "_corrected")
-
-        # we need to go the pandas route because we want to keep the column order
-        keep_cols = ["_input", "_target", "_original", "_corrected"]
-        df: pd.DataFrame = self.dataset.to_pandas()[keep_cols]  # type: ignore
-        # df.columns = [c.lstrip("_") for c in keep_cols]
-        self.dataset = Dataset.from_pandas(df)
+        self.dataset = dataset
 
     def get_original(self) -> List[str]:
         return self.dataset["_original"]  # type: ignore
@@ -73,25 +42,152 @@ class ABCDataset(ABC):
         with open(out_dir / f"{self.name}-target.txt", "w") as fp:
             fp.write("\n".join(self.get_corrected()))
 
+
+class DatasetLoader(ABC):
+    def __init__(
+        self,
+        name: str,
+        dataset: Dataset,
+        original_col: Optional[str] = None,
+        corrected_col: Optional[str] = None,
+        tokenized_original_col: Optional[str] = None,
+        tokenized_corrected_col: Optional[str] = None,
+        task_prefix: str = "Grammar",
+    ):
+        self.name = name
+        self._dataset = self._clean_dataset(dataset)
+        self._rename_columns_(
+            original_col, corrected_col, tokenized_original_col, tokenized_corrected_col
+        )
+        self._add_task_prefix_(task_prefix.replace(":", "").strip())
+
+    def get_dataset(self) -> Dataset:
+        return self._dataset
+
+    def _add_task_prefix_(self, task_prefix) -> None:
+        self._dataset = self._dataset.map(lambda _: {"_prefix": task_prefix})
+
+    def _rename_columns_(
+        self,
+        original_col: Optional[str] = None,
+        corrected_col: Optional[str] = None,
+        tokenized_original_col: Optional[str] = None,
+        tokenized_corrected_col: Optional[str] = None,
+    ) -> None:
+        if original_col and corrected_col and tokenized_original_col and tokenized_corrected_col:
+            self._dataset.rename_column_(original_col, "_input")
+            self._dataset.rename_column_(corrected_col, "_target")
+            self._dataset.rename_column_(tokenized_original_col, "_original")
+            self._dataset.rename_column_(tokenized_corrected_col, "_corrected")
+
+        # we need to go the pandas route because we want to keep the column order
+        keep_cols = ["_input", "_target", "_original", "_corrected"]
+        df: pd.DataFrame = self._dataset.to_pandas()[keep_cols]  # type: ignore
+        # df.columns = [c.lstrip("_") for c in keep_cols]
+        self._dataset = Dataset.from_pandas(df)
+
     @abstractmethod
     def _clean_dataset(self, dataset: Dataset) -> Dataset:
         ...
 
 
-class StackedDataset(ABCDataset):
-    def __init__(self, name: str, datasets: List[ABCDataset]):
-        self._datasets = datasets
-        super().__init__(name=name, dataset=interleave_datasets([d.dataset for d in datasets]))
+class MerlinDatasetLoader(DatasetLoader):
+    def __init__(self, lang: str):
+        ds: Dataset = load_dataset("aseifert/merlin", data_files={"train": f"{lang}.jsonl"})["train"]  # type: ignore
+        super().__init__(
+            name="merlin",
+            dataset=ds,
+            original_col="input",
+            corrected_col="target",
+            tokenized_original_col="original",
+            tokenized_corrected_col="corrected",
+        )
 
-    def _clean_dataset(self, dataset):
-        return dataset  # do nothing
+    def _clean_dataset(self, dataset: Dataset) -> Dataset:
+        def clean(x):
+            def _clean_text(text: str):
+                return text.strip()
 
-    def _add_task_prefix_(self, task_prefix):
-        # do nothing
-        pass
+            return {
+                "original": _clean_text(x["original"]),
+                "corrected": _clean_text(x["corrected"]),
+            }
+
+        def remove_empty(x):
+            return x["corrected"] != ""
+
+        def remove_identical(x):
+            return x["original"] != x["corrected"]
+
+        def create_model_data(x):
+            def apply_detokenize(x):
+                return {
+                    "input": errant_detokenize(x["original"]),
+                    "target": errant_detokenize(x["corrected"]),
+                }
+
+            detokenized = apply_detokenize(x)
+            return {
+                "input": detokenized["input"],
+                "target": detokenized["target"],
+            }
+
+        return (
+            dataset.map(clean).filter(remove_empty).filter(remove_identical).map(create_model_data)
+        )
 
 
-class JFLEGDataset(ABCDataset):
+class PieDatasetLoader(DatasetLoader):
+    def __init__(self, take_n: int):
+        ds = load_dataset("aseifert/pie-synthetic", split="train", streaming=True)
+        ds_iter = iter(ds)
+        samples = [next(ds_iter) for _ in range(take_n)]
+        ds = Dataset.from_dict(pd.DataFrame(samples).to_dict(orient="list"))
+
+        super().__init__(
+            name="pie",
+            dataset=ds,
+            original_col="input",
+            corrected_col="target",
+            tokenized_original_col="original",
+            tokenized_corrected_col="corrected",
+        )
+
+    def _clean_dataset(self, dataset: Dataset) -> Dataset:
+        def clean(x):
+            def _clean_text(text: str):
+                return text.strip()
+
+            return {
+                "original": _clean_text(x["original"]),
+                "corrected": _clean_text(x["corrected"]),
+            }
+
+        def remove_empty(x):
+            return x["corrected"] != ""
+
+        def remove_identical(x):
+            return x["original"] != x["corrected"]
+
+        def create_model_data(x):
+            def apply_detokenize(x):
+                return {
+                    "input": errant_detokenize(x["original"]),
+                    "target": errant_detokenize(x["corrected"]),
+                }
+
+            detokenized = apply_detokenize(x)
+            return {
+                "input": detokenized["input"],
+                "target": detokenized["target"],
+            }
+
+        return (
+            dataset.map(clean).filter(remove_empty).filter(remove_identical).map(create_model_data)
+        )
+
+
+class JFLEGDatasetLoader(DatasetLoader):
     def __init__(self, split: str):
         super().__init__(
             name="jfleg",
@@ -140,7 +236,7 @@ class JFLEGDataset(ABCDataset):
         )
 
 
-class _WiLocnessDataset(ABCDataset):
+class _WiLocnessDatasetLoader(DatasetLoader):
     def __init__(
         self,
         dataset: Dataset,
@@ -187,13 +283,13 @@ class _WiLocnessDataset(ABCDataset):
         return dataset.map(apply_edits).remove_columns(["edits"]).map(clean).map(tokenize)
 
 
-class WiDataset(_WiLocnessDataset):
+class WiDatasetLoader(_WiLocnessDatasetLoader):
     def __init__(self, split: str):
         dd: DatasetDict = load_dataset("wi_locness", "wi")  # type: ignore
         super().__init__(name="wi", dataset=dd[split])
 
 
-class LocnessDataset(_WiLocnessDataset):
+class LocnessDatasetLoader(_WiLocnessDatasetLoader):
     def __init__(self, split: str):
         dd: DatasetDict = load_dataset("wi_locness", "locness")  # type: ignore
         super().__init__(name="locness", dataset=dd[split])

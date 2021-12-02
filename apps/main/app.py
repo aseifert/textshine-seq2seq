@@ -3,11 +3,12 @@ import time
 import errant
 import spacy
 import streamlit as st
-from happytransformer import HappyTextToText, TTSettings
+from fastT5 import export_and_get_onnx_model, get_onnx_model
+from transformers import AutoTokenizer  # type: ignore
 
 from highlighter import show_highlights
 
-checkpoints = [
+model_names = [
     "aseifert/t5-base-jfleg-wi",
     "aseifert/byt5-base-jfleg-wi",
     "team-writing-assistant/t5-base-c4jfleg",
@@ -26,8 +27,15 @@ def download_spacy_model(model="en"):
 
 
 @st.cache(allow_output_mutation=True)
-def get_model(model_name):
-    return HappyTextToText("T5", model_name)
+def load_model_and_tokenizer(model_name: str):
+    model = None
+    try:
+        model = get_onnx_model(model_name)
+    except AssertionError as e:
+        model = export_and_get_onnx_model(model_name)
+    assert model
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    return model, tokenizer
 
 
 @st.cache(allow_output_mutation=True)
@@ -47,9 +55,8 @@ def main():
 
     download_spacy_model()
     annotator = get_annotator("en")
-    checkpoint = st.selectbox("Choose model", checkpoints)
-    model = get_model(checkpoint)
-    args = TTSettings(num_beams=5, min_length=1, max_length=1024)
+    model_name = st.selectbox("Choose model", model_names)
+    model, tokenizer = load_model_and_tokenizer(model_name)
 
     default_text = "A dog is bigger then mouse."
     default_text = "it gives him many apprtunites in the life, and i think that being knowledge person is a very wouderful thing to have so we can spend our lives in a successful way and full of happenis."
@@ -62,8 +69,7 @@ def main():
     if st.button("✍️ Check"):
         start = time.time()
         with st.spinner("Checking for errors 🔍"):
-            prefixed_input_text = "Grammar: " + input_text
-            result = predict(model, args, prefixed_input_text)
+            result = predict(model, tokenizer, input_text)
 
             try:
                 show_highlights(annotator, input_text, result)
