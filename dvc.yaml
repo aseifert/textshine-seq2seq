@@ -1,8 +1,9 @@
 vars:
   - final-data-train: data/train.csv
+  - final-data-eval: data/eval.csv
   - final-data-test: data/test.csv
-  - final-data-test-orig: data/test-input.txt
-  - final-data-test-cor: data/test-target.txt
+  - final-data-eval-orig: data/eval-input.txt
+  - final-data-eval-cor: data/eval-target.txt
   - final-model: outputs/best_model/pytorch_model.bin
   - final-predictions: outputs/predictions.txt
   - edits-hyp: outputs/edits-hyp.txt
@@ -11,12 +12,13 @@ vars:
 stages:
   prepare-data:
     cmd: python -m src.prepare_dataset
-      && errant_parallel -orig ${final-data-test-orig} -cor ${final-data-test-cor} -out ${edits-gold}
+      && errant_parallel -orig ${final-data-eval-orig} -cor ${final-data-eval-cor} -out ${edits-gold}
     deps:
       - src/prepare_dataset.py
       - src/data.py
     outs:
       - ${final-data-train}
+      - ${final-data-eval}
       - ${final-data-test}
   train:
     cmd: python -m src.train
@@ -24,6 +26,8 @@ stages:
       --batch_size=${batch_size}
       --learning_rate=${learning_rate}
       --num_train_epochs=${epochs}
+      --train_csv=${final-data-train}
+      --eval_csv=${final-data-eval}
     params:
       - model_name
       - batch_size
@@ -32,7 +36,7 @@ stages:
     deps:
       - src/train.py
       - ${final-data-train}
-      - ${final-data-test}
+      - ${final-data-eval}
     outs:
       - ${final-model}
   tag:
