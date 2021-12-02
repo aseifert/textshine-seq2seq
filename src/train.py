@@ -73,7 +73,7 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
         if data_args.eval_csv
         else None
     )
-    original_sents = eval_df["input_text"].tolist() if eval_df else None
+    original_sents = eval_df["input_text"].tolist() if eval_df is not None else None
     gold_edits = load_gold_edits(PROJ / "outputs/edits-gold.txt") if data_args.eval_csv else None
     assert len(gold_edits) == len(original_sents) == len(eval_df)  # type: ignore
 
