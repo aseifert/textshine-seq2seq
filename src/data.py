@@ -138,11 +138,16 @@ class MerlinDatasetLoader(DatasetLoader):
 
 
 class PieDatasetLoader(DatasetLoader):
-    def __init__(self, take_n: int):
-        ds = load_dataset("aseifert/pie-synthetic", split="train", streaming=True)
-        ds_iter = iter(ds)
-        samples = [next(ds_iter) for _ in range(take_n)]
-        ds = Dataset.from_dict(pd.DataFrame(samples).to_dict(orient="list"))
+    def __init__(self, take_n: Optional[int] = None):
+        if take_n:
+            ds: Dataset = load_dataset("aseifert/pie-synthetic", split="train", streaming=True)  # type: ignore
+            ds_iter = iter(ds)
+            samples = [next(ds_iter) for _ in range(take_n)]
+            ds = Dataset.from_dict(pd.DataFrame(samples).to_dict(orient="list"))
+        else:
+            ds: Dataset = load_dataset("aseifert/pie-synthetic", split="train", streaming=False)["train"]  # type: ignore
+
+        assert ds is not None
 
         super().__init__(
             name="pie",
