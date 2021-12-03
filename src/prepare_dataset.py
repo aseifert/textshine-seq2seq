@@ -24,7 +24,7 @@ class DataArgs:
 
 
 def main(data_args: DataArgs):
-    jfleg = JFLEGDatasetLoader("validation").get_dataset()
+    jfleg = JFLEGDatasetLoader("validation").get_dataset().shuffle(42)
     jfleg_eval = jfleg.select(range(1000))
     jfleg_train = jfleg.select(range(1001, len(jfleg)))
     datasets = {
