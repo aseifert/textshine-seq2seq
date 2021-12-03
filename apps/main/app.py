@@ -4,6 +4,7 @@ import errant
 import spacy
 import streamlit as st
 from fastT5 import export_and_get_onnx_model, get_onnx_model
+from src.utils import errant_tokenize
 from transformers import AutoTokenizer  # type: ignore
 
 from highlighter import show_highlights
@@ -69,12 +70,14 @@ def main():
     if st.button("✍️ Check"):
         start = time.time()
         with st.spinner("Checking for errors 🔍"):
-            result = predict(model, tokenizer, input_text)
+            output_text = predict(model, tokenizer, input_text)
 
             try:
-                show_highlights(annotator, input_text, result)
+                tokenized_input_text = errant_tokenize(input_text)
+                tokenized_output_text = errant_tokenize(output_text)
+                show_highlights(annotator, tokenized_input_text, tokenized_output_text)
                 st.write("")
-                st.success(result)
+                st.success(output_text)
             except Exception as e:
                 st.error("Some error occured!" + str(e))
                 st.stop()
