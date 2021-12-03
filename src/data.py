@@ -145,7 +145,7 @@ class PieDatasetLoader(DatasetLoader):
             samples = [next(ds_iter) for _ in range(take_n)]
             ds = Dataset.from_dict(pd.DataFrame(samples).to_dict(orient="list"))
         else:
-            ds: Dataset = load_dataset("aseifert/pie-synthetic", split="train", streaming=False)["train"]  # type: ignore
+            ds: Dataset = load_dataset("aseifert/pie-synthetic", split="train", streaming=False)  # type: ignore
 
         assert ds is not None
 
