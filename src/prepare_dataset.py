@@ -24,14 +24,16 @@ class DataArgs:
 
 
 def main(data_args: DataArgs):
-    jfleg = JFLEGDatasetLoader("validation").get_dataset().shuffle(42)
+    pie = PieDatasetLoader(take_n=None).get_dataset()
+    features = pie.features
+    jfleg = JFLEGDatasetLoader("validation").get_dataset().shuffle(42).cast(features)
     jfleg_eval = jfleg.select(range(1000))
     jfleg_train = jfleg.select(range(1001, len(jfleg)))
     datasets = {
         "train": concatenate_datasets(
             [
                 jfleg_train,
-                PieDatasetLoader(take_n=50_000).get_dataset(),
+                pie,
                 # MerlinDatasetLoader("german").get_dataset(),
                 # WiDatasetLoader("train").get_dataset(),
                 # WiDatasetLoader("validation").get_dataset(),
