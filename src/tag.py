@@ -37,7 +37,9 @@ def tag(pipe, dataset: Dataset, batch_size: int, max_length: int, tokenize: bool
     key_dataset_unique = KeyDataset(Dataset.from_dict({"input_text": dataset.unique("input_text")}), "input_text")  # type: ignore
     unique_results = [
         p["generated_text"]
-        for p in tqdm(pipe(key_dataset_unique, max_length=max_length, batch_size=batch_size))
+        for p in tqdm(
+            pipe(key_dataset_unique, max_length=max_length, batch_size=batch_size), "tagging text"
+        )
     ]
 
     # and then we construct the full results out of the saved predictions

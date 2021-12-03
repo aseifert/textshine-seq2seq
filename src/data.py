@@ -33,7 +33,7 @@ class DatasetWriter:
             fp_input = open(out_dir / f"{self.name}-input.txt", "w")
             fp_target = open(out_dir / f"{self.name}-target.txt", "w")
 
-        for row in tqdm(self.dataset):
+        for row in tqdm(self.dataset, "writing dataset to disk"):
             if write_csv:
                 csv_writer.writerow(  # type: ignore
                     {
