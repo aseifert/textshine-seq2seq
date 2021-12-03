@@ -14,15 +14,19 @@ class DatasetWriter:
         self,
         name: str,
         dataset: Dataset,
-        task_prefix: str = "Grammar",
     ):
         self.name = name
         self.dataset = dataset
-        self.task_prefix = task_prefix.replace(":", "").strip()
 
     def write_files(self, out_dir: Path, write_texts: bool = True, write_csv: bool = True):
         if write_csv:
-            self.dataset.to_csv(out_dir / f"{self.name}.csv")
+            ds = self.dataset
+            ds = (
+                ds.rename_column("_input", "input_text")  # type: ignore
+                .rename_column("_target", "target_text")
+                .remove_columns("_original _corrected".split())
+            )
+            ds.to_csv(out_dir / f"{self.name}.csv", index=False)
 
         if write_texts:
             with open(out_dir / f"{self.name}-input.txt", "w") as fp_input:

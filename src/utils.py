@@ -89,3 +89,7 @@ def log_metrics(args_path: Path, results_path: Path, predictions_path: Path):
     )
     wandb.log(results)
     wandb.log({"predictions": [p.strip() for p in open(predictions_path, "r")]})
+
+
+def clean_task_prefix(task_prefix: str) -> str:
+    return task_prefix.replace(":", "").strip()

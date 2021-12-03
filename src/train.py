@@ -9,9 +9,9 @@ from simpletransformers.t5 import T5Args, T5Model  # type: ignore
 from transformers import HfArgumentParser  # type: ignore
 
 from src.eval import get_precision_recall_f05_score
-from src.utils import PROJ, dump_args, load_gold_edits
 
 torch.multiprocessing.set_sharing_strategy("file_system")
+from src.utils import PROJ, clean_task_prefix, load_gold_edits, set_rlimit
 
 PWD = Path(__file__).parent
 PROJ_HOME = PWD.parent
@@ -28,6 +28,7 @@ class DataArgs:
     train_csv: Path = PROJ_HOME / "data/train.csv"
     eval_csv: Optional[Path] = PROJ_HOME / "data/eval.csv"
     out: Path = PROJ_HOME / "models/"
+    task_prefix: str = "Grammar"
 
 
 @dataclass
@@ -70,6 +71,8 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
 
     train_df = pd.read_csv(data_args.train_csv)
     eval_df = pd.read_csv(data_args.eval_csv) if data_args.eval_csv else None
+    for df in [train_df, eval_df]:
+        df["prefix"] = clean_task_prefix(data_args.task_prefix)
     original_sents = eval_df["input_text"].tolist() if eval_df is not None else None
     gold_edits = load_gold_edits(PROJ / "outputs/edits-gold.txt") if data_args.eval_csv else None
     assert len(gold_edits) == len(original_sents) == len(eval_df)  # type: ignore

@@ -20,7 +20,6 @@ PROJ_HOME = PWD.parent
 @dataclass
 class DataArgs:
     out_dir: Path = PROJ_HOME / "data/"
-    task_prefix: str = "Grammar"
 
 
 def main(data_args: DataArgs):
@@ -50,7 +49,7 @@ def main(data_args: DataArgs):
 
     for name, stacked in datasets.items():
         print(name, stacked)
-        writer = DatasetWriter(name, stacked, data_args.task_prefix)
+        writer = DatasetWriter(name, stacked)
         write_texts = name != "train"
         writer.write_files(data_args.out_dir, write_csv=True, write_texts=write_texts)
 
