@@ -153,8 +153,8 @@ class PieDatasetLoader(DatasetLoader):
         def create_model_data(x):
             def apply_detokenize(x):
                 return {
-                    "input": errant_detokenize(x["original"]),
-                    "target": errant_detokenize(x["corrected"]),
+                    "input": [errant_detokenize(o) for o in x["original"]],
+                    "target": [errant_detokenize(c) for c in x["corrected"]],
                 }
 
             detokenized = apply_detokenize(x)
@@ -163,7 +163,7 @@ class PieDatasetLoader(DatasetLoader):
                 "target": detokenized["target"],
             }
 
-        return dataset.map(create_model_data)
+        return dataset.map(create_model_data, batched=True)
 
 
 class JFLEGDatasetLoader(DatasetLoader):
