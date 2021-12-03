@@ -28,6 +28,7 @@ stages:
       --batch_size=${batch_size}
       --learning_rate=${learning_rate}
       --num_train_epochs=${epochs}
+      --task_prefix ${task_prefix}
     params:
       - model_name
       - batch_size
@@ -42,8 +43,8 @@ stages:
   tag:
     cmd: python -m src.tag
       --model_name outputs/best_model/
-      --batch_size=${batch_size}
       --test_csv ${final-data-test}
+      --task_prefix ${task_prefix}
       --out_path ${final-predictions}
     deps:
       - src/tag.py
