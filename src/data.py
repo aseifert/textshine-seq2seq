@@ -13,9 +13,11 @@ class DatasetWriter:
         self,
         name: str,
         dataset: Dataset,
+        task_prefix: str = "Grammar",
     ):
         self.name = name
         self.dataset = dataset
+        self.task_prefix = task_prefix.replace(":", "").strip()
 
     def get_original(self) -> List[str]:
         return self.dataset["_original"]  # type: ignore
@@ -28,7 +30,7 @@ class DatasetWriter:
 
     def write_csv(self, out_dir: Path):
         df = self.get_two_column_df()
-        df["prefix"] = "Grammar"
+        df["prefix"] = self.task_prefix
         df["prefix _input _target".split()].to_csv(
             out_dir / f"{self.name}.csv",
             index=False,
@@ -52,19 +54,21 @@ class DatasetLoader(ABC):
         corrected_col: Optional[str] = None,
         tokenized_original_col: Optional[str] = None,
         tokenized_corrected_col: Optional[str] = None,
-        task_prefix: str = "Grammar",
     ):
         self.name = name
         self._dataset = self._clean_dataset(dataset)
         self._rename_columns_(
             original_col, corrected_col, tokenized_original_col, tokenized_corrected_col
         )
-        self._add_task_prefix_(task_prefix.replace(":", "").strip())
+        # self._add_task_prefix_(task_prefix.replace(":", "").strip())
 
     def get_dataset(self) -> Dataset:
         return self._dataset
 
     def _add_task_prefix_(self, task_prefix) -> None:
+        assert (
+            False
+        ), "no need to add task prefix to dataset right now, since we put it in the pandas dataframe as its own column"
         self._dataset = self._dataset.map(lambda _: {"_prefix": task_prefix})
 
     def _rename_columns_(
@@ -146,6 +150,7 @@ class PieDatasetLoader(DatasetLoader):
             ds = Dataset.from_dict(pd.DataFrame(samples).to_dict(orient="list"))
         else:
             ds: Dataset = load_dataset("aseifert/pie-synthetic", split="train", streaming=False)  # type: ignore
+            # ds = ds.select(range(10_000_000))
 
         assert ds is not None
 
@@ -159,21 +164,6 @@ class PieDatasetLoader(DatasetLoader):
         )
 
     def _clean_dataset(self, dataset: Dataset) -> Dataset:
-        def clean(x):
-            def _clean_text(text: str):
-                return text.strip()
-
-            return {
-                "original": _clean_text(x["original"]),
-                "corrected": _clean_text(x["corrected"]),
-            }
-
-        def remove_empty(x):
-            return x["corrected"] != ""
-
-        def remove_identical(x):
-            return x["original"] != x["corrected"]
-
         def create_model_data(x):
             def apply_detokenize(x):
                 return {
@@ -187,9 +177,7 @@ class PieDatasetLoader(DatasetLoader):
                 "target": detokenized["target"],
             }
 
-        return (
-            dataset.map(clean).filter(remove_empty).filter(remove_identical).map(create_model_data)
-        )
+        return dataset.map(create_model_data)
 
 
 class JFLEGDatasetLoader(DatasetLoader):
