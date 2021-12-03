@@ -21,25 +21,37 @@ class DatasetWriter:
         self.dataset = dataset
         self.task_prefix = task_prefix.replace(":", "").strip()
 
-    def write_csv(self, out_dir: Path):
-        with open(out_dir / f"{self.name}.csv", "w", newline="") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames="prefix input_text target_text".split())
-            writer.writeheader()
-            for row in tqdm(self.dataset):
-                writer.writerow(
+    def write_files(self, out_dir: Path, write_texts: bool = True, write_csv: bool = True):
+        csv_writer = fp_csv = fp_input = fp_target = None
+
+        if write_csv:
+            fp_csv = open(out_dir / f"{self.name}.csv", "w")
+            csv_writer = csv.DictWriter(fp_csv, fieldnames="prefix input_text target_text".split())
+            csv_writer.writeheader()
+
+        if write_texts:
+            fp_input = open(out_dir / f"{self.name}-input.txt", "w")
+            fp_target = open(out_dir / f"{self.name}-target.txt", "w")
+
+        for row in tqdm(self.dataset):
+            if write_csv:
+                csv_writer.writerow(  # type: ignore
                     {
                         "prefix": self.task_prefix,
                         "input_text": row["_input"],
                         "target_text": row["_target"],
                     }
                 )
+            if write_texts:
+                fp_input.write(row["_original"] + "\n")  # type: ignore
+                fp_target.write(row["_corrected"] + "\n")  # type: ignore
 
-    def write_texts(self, out_dir: Path):
-        with open(out_dir / f"{self.name}-input.txt", "w") as fp_input:
-            with open(out_dir / f"{self.name}-target.txt", "w") as fp_target:
-                for row in tqdm(self.dataset):
-                    fp_input.write(row["_original"] + "\n")
-                    fp_target.write(row["_corrected"] + "\n")
+        if write_csv:
+            fp_csv.close()  # type: ignore
+
+        if write_texts:
+            fp_input.close()  # type: ignore
+            fp_target.close()  # type: ignore
 
 
 class DatasetLoader(ABC):
