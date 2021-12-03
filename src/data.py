@@ -170,6 +170,45 @@ class PieDatasetLoader(DatasetLoader):
         return dataset.map(create_model_data, batched=True)
 
 
+class C4200MDatasetLoader(DatasetLoader):
+    def __init__(self, take_n: Optional[int] = None):
+        if take_n:
+            ds: Dataset = load_dataset("liweili/c4_200m", split="train", streaming=True)  # type: ignore
+            ds_iter = iter(ds)
+            samples = [next(ds_iter) for _ in range(take_n)]
+            ds = Dataset.from_dict(pd.DataFrame(samples).to_dict(orient="list"))
+        else:
+            ds: Dataset = load_dataset("liweili/c4_200m", split="train", streaming=False)  # type: ignore
+            # ds = ds.select(range(10_000_000))
+
+        assert ds is not None
+
+        super().__init__(
+            name="c4_200m",
+            dataset=ds,
+            original_col="input",
+            corrected_col="output",
+            tokenized_original_col="original",
+            tokenized_corrected_col="corrected",
+        )
+
+    def _clean_dataset(self, dataset: Dataset) -> Dataset:
+        def create_model_data(x):
+            def apply_detokenize(x):
+                return {
+                    "original": [errant_tokenize(o) for o in x["input"]],
+                    "corrected": [errant_tokenize(c) for c in x["output"]],
+                }
+
+            detokenized = apply_detokenize(x)
+            return {
+                "original": detokenized["original"],
+                "corrected": detokenized["corrected"],
+            }
+
+        return dataset.map(create_model_data, batched=True)
+
+
 class JFLEGDatasetLoader(DatasetLoader):
     def __init__(self, split: str):
         super().__init__(

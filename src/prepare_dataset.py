@@ -5,6 +5,7 @@ from datasets import concatenate_datasets  # type: ignore
 from transformers import HfArgumentParser  # type: ignore
 
 from src.data import (
+    C4200MDatasetLoader,
     DatasetWriter,
     JFLEGDatasetLoader,
     LocnessDatasetLoader,
@@ -23,8 +24,8 @@ class DataArgs:
 
 
 def main(data_args: DataArgs):
-    pie = PieDatasetLoader(take_n=None).get_dataset()
-    features = pie.features
+    c4_200m = C4200MDatasetLoader(take_n=1_000_000).get_dataset()
+    features = c4_200m.features
     jfleg = JFLEGDatasetLoader("validation").get_dataset().shuffle(42).cast(features)
     jfleg_eval = jfleg.select(range(1000))
     jfleg_train = jfleg.select(range(1001, len(jfleg)))
@@ -32,7 +33,7 @@ def main(data_args: DataArgs):
         "train": concatenate_datasets(
             [
                 jfleg_train,
-                pie,
+                c4_200m,
                 # MerlinDatasetLoader("german").get_dataset(),
                 # WiDatasetLoader("train").get_dataset(),
                 # WiDatasetLoader("validation").get_dataset(),
