@@ -5,6 +5,7 @@ from typing import Optional
 
 import pandas as pd
 from datasets import Dataset, load_dataset  # type: ignore
+from tqdm import tqdm
 
 from src.utils import errant_detokenize, errant_tokenize
 
@@ -24,7 +25,7 @@ class DatasetWriter:
         with open(out_dir / f"{self.name}.csv", "w", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames="prefix input_text target_text".split())
             writer.writeheader()
-            for row in self.dataset:
+            for row in tqdm(self.dataset):
                 writer.writerow(
                     {
                         "prefix": self.task_prefix,
@@ -34,13 +35,11 @@ class DatasetWriter:
                 )
 
     def write_texts(self, out_dir: Path):
-        with open(out_dir / f"{self.name}-input.txt", "w") as fp:
-            for row in self.dataset:
-                fp.write(f"{row['_original']}\n")
-
-        with open(out_dir / f"{self.name}-target.txt", "w") as fp:
-            for row in self.dataset:
-                fp.write(f"{row['_corrected']}\n")
+        with open(out_dir / f"{self.name}-input.txt", "w") as fp_input:
+            with open(out_dir / f"{self.name}-target.txt", "w") as fp_target:
+                for row in tqdm(self.dataset):
+                    fp_input.write(row["_original"] + "\n")
+                    fp_target.write(row["_corrected"] + "\n")
 
 
 class DatasetLoader(ABC):
