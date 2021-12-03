@@ -5,9 +5,9 @@ from typing import List
 from datasets import Dataset, load_dataset  # type: ignore
 from tqdm import tqdm
 from transformers import HfArgumentParser, pipeline  # type: ignore
-from transformers.pipelines.base import KeyDataset
+from transformers.pipelines.base import KeyDataset  # type: ignore
 
-from src.utils import errant_tokenize
+from src.utils import clean_task_prefix, errant_tokenize
 
 PWD = Path(__file__).parent
 PROJ_HOME = PWD.parent
@@ -26,10 +26,11 @@ class ModelArgs:
 class DataArgs:
     test_csv: Path = PROJ_HOME / "data/test.csv"
     out_path: Path = PROJ_HOME / "predictions.txt"
+    task_prefix: str = "Grammar"
 
 
-def tag(pipe, dataset: Dataset, batch_size: int, max_length: int, tokenize: bool) -> List[str]:
-    dataset = dataset.map(lambda x: {"input_text": x["prefix"] + ": " + x["input_text"]})
+def tag(pipe, dataset: Dataset, max_length: int, task_prefix: str, tokenize: bool) -> List[str]:
+    dataset = dataset.map(lambda x: {"input_text": task_prefix + ": " + x["input_text"]})
     key_dataset = KeyDataset(dataset, "input_text")  # type: ignore
 
     # we predict only on the unique dataset
@@ -37,9 +38,7 @@ def tag(pipe, dataset: Dataset, batch_size: int, max_length: int, tokenize: bool
     key_dataset_unique = KeyDataset(Dataset.from_dict({"input_text": dataset.unique("input_text")}), "input_text")  # type: ignore
     unique_results = [
         p["generated_text"]
-        for p in tqdm(
-            pipe(key_dataset_unique, max_length=max_length, batch_size=batch_size), "tagging text"
-        )
+        for p in tqdm(pipe(key_dataset_unique, max_length=max_length), "tagging text")
     ]
 
     # and then we construct the full results out of the saved predictions
@@ -59,8 +58,8 @@ def main(
     predictions = tag(
         pipe=pipe,
         dataset=dataset,
-        batch_size=model_args.batch_size,
         max_length=model_args.max_length,
+        task_prefix=clean_task_prefix(data_args.task_prefix),
         tokenize=model_args.tokenize,
     )
 
