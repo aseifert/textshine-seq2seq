@@ -1,7 +1,7 @@
 import csv
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import pandas as pd
 from datasets import Dataset, load_dataset  # type: ignore
@@ -20,12 +20,6 @@ class DatasetWriter:
         self.dataset = dataset
         self.task_prefix = task_prefix.replace(":", "").strip()
 
-    def get_original(self) -> List[str]:
-        return self.dataset["_original"]  # type: ignore
-
-    def get_corrected(self) -> List[str]:
-        return self.dataset["_corrected"]  # type: ignore
-
     def write_csv(self, out_dir: Path):
         with open(out_dir / f"{self.name}.csv", "w", newline="") as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames="prefix input_text target_text".split())
@@ -41,10 +35,12 @@ class DatasetWriter:
 
     def write_texts(self, out_dir: Path):
         with open(out_dir / f"{self.name}-input.txt", "w") as fp:
-            fp.write("\n".join(self.get_original()))
+            for row in self.dataset:
+                fp.write(f"{row['_original']}\n")
 
         with open(out_dir / f"{self.name}-target.txt", "w") as fp:
-            fp.write("\n".join(self.get_corrected()))
+            for row in self.dataset:
+                fp.write(f"{row['_corrected']}\n")
 
 
 class DatasetLoader(ABC):
