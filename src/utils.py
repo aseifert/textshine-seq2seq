@@ -1,4 +1,5 @@
 import json
+import resource
 from dataclasses import asdict
 from pathlib import Path
 
@@ -89,6 +90,11 @@ def log_metrics(args_path: Path, results_path: Path, predictions_path: Path):
     )
     wandb.log(results)
     wandb.log({"predictions": [p.strip() for p in open(predictions_path, "r")]})
+
+
+def set_rlimit(limit: int) -> None:
+    rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    resource.setrlimit(resource.RLIMIT_NOFILE, (limit, rlimit[1]))
 
 
 def clean_task_prefix(task_prefix: str) -> str:
