@@ -47,9 +47,8 @@ class TrainingArgs:
 
 def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -> None:
     for path in asdict(data_args).values():
-        assert not path or path.exists(), f"{path} does not exist"
-    # assert data_args.out
-    # dump_args(data_args.out / "args.json", model_args, data_args, train_args)
+        if path and isinstance(path, Path):
+            assert path.exists(), f"{path} does not exist"
 
     t5_args = T5Args()
     t5_args.max_length = 512
