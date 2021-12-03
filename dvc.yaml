@@ -28,8 +28,6 @@ stages:
       --batch_size=${batch_size}
       --learning_rate=${learning_rate}
       --num_train_epochs=${epochs}
-      --train_csv=${final-data-train}
-      --eval_csv=${final-data-eval}
     params:
       - model_name
       - batch_size
