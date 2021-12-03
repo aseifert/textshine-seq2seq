@@ -79,10 +79,12 @@ class DatasetLoader(ABC):
         tokenized_corrected_col: Optional[str] = None,
     ) -> None:
         if original_col and corrected_col and tokenized_original_col and tokenized_corrected_col:
-            self._dataset.rename_column_(original_col, "_input")
-            self._dataset.rename_column_(corrected_col, "_target")
-            self._dataset.rename_column_(tokenized_original_col, "_original")
-            self._dataset.rename_column_(tokenized_corrected_col, "_corrected")
+            self._dataset = (
+                self._dataset.rename_column(original_col, "_input")  # type: ignore
+                .rename_column(corrected_col, "_target")
+                .rename_column(tokenized_original_col, "_original")
+                .rename_column(tokenized_corrected_col, "_corrected")
+            )
 
         # we need to go the pandas route because we want to keep the column order
         keep_cols = ["_input", "_target", "_original", "_corrected"]
@@ -222,7 +224,9 @@ class JFLEGDatasetLoader(DatasetLoader):
 
         # "corrections" contains a list -- after exploding every item has its own row
         dataset = Dataset.from_pandas(dataset.to_pandas().explode("corrections", ignore_index=True))  # type: ignore
-        dataset.rename_column_(original_column_name="corrections", new_column_name="correction")
+        dataset = dataset.rename_column(
+            original_column_name="corrections", new_column_name="correction"  # type: ignore
+        )
 
         return (
             dataset.map(clean).filter(remove_empty).filter(remove_identical).map(create_model_data)
