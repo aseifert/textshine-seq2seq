@@ -31,8 +31,8 @@ def main(data_args: DataArgs):
         "train": concatenate_datasets(
             [
                 jfleg_train,
-                MerlinDatasetLoader("german").get_dataset(),
                 PieDatasetLoader(take_n=50_000).get_dataset(),
+                # MerlinDatasetLoader("german").get_dataset(),
                 # WiDatasetLoader("train").get_dataset(),
                 # WiDatasetLoader("validation").get_dataset(),
                 # LocnessDatasetLoader("validation").get_dataset(),
