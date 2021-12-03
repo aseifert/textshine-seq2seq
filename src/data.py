@@ -83,12 +83,9 @@ class DatasetLoader(ABC):
                 .rename_column(tokenized_original_col, "_original")
                 .rename_column(tokenized_corrected_col, "_corrected")
             )
-
-        # we need to go the pandas route because we want to keep the column order
-        keep_cols = ["_input", "_target", "_original", "_corrected"]
-        df: pd.DataFrame = self._dataset.to_pandas()[keep_cols]  # type: ignore
-        # df.columns = [c.lstrip("_") for c in keep_cols]
-        self._dataset = Dataset.from_pandas(df)
+        for col in self._dataset.column_names:
+            if col not in ["_input", "_target", "_original", "_corrected"]:
+                self._dataset = self._dataset.remove_columns(col)  # type: ignore
 
     @abstractmethod
     def _clean_dataset(self, dataset: Dataset) -> Dataset:
