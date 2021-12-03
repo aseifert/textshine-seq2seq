@@ -1,4 +1,3 @@
-import csv
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional
@@ -22,36 +21,15 @@ class DatasetWriter:
         self.task_prefix = task_prefix.replace(":", "").strip()
 
     def write_files(self, out_dir: Path, write_texts: bool = True, write_csv: bool = True):
-        csv_writer = fp_csv = fp_input = fp_target = None
-
         if write_csv:
-            fp_csv = open(out_dir / f"{self.name}.csv", "w")
-            csv_writer = csv.DictWriter(fp_csv, fieldnames="prefix input_text target_text".split())
-            csv_writer.writeheader()
+            self.dataset.to_csv(out_dir / f"{self.name}.csv")
 
         if write_texts:
-            fp_input = open(out_dir / f"{self.name}-input.txt", "w")
-            fp_target = open(out_dir / f"{self.name}-target.txt", "w")
-
-        for row in tqdm(self.dataset, "writing dataset to disk"):
-            if write_csv:
-                csv_writer.writerow(  # type: ignore
-                    {
-                        "prefix": self.task_prefix,
-                        "input_text": row["_input"],
-                        "target_text": row["_target"],
-                    }
-                )
-            if write_texts:
-                fp_input.write(row["_original"] + "\n")  # type: ignore
-                fp_target.write(row["_corrected"] + "\n")  # type: ignore
-
-        if write_csv:
-            fp_csv.close()  # type: ignore
-
-        if write_texts:
-            fp_input.close()  # type: ignore
-            fp_target.close()  # type: ignore
+            with open(out_dir / f"{self.name}-input.txt", "w") as fp_input:
+                with open(out_dir / f"{self.name}-target.txt", "w") as fp_target:
+                    for row in tqdm(self.dataset, "writing dataset to disk"):
+                        fp_input.write(row["_original"] + "\n")  # type: ignore
+                        fp_target.write(row["_corrected"] + "\n")  # type: ignore
 
 
 class DatasetLoader(ABC):
