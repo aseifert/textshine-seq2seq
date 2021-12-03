@@ -1,3 +1,4 @@
+import csv
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List, Optional
@@ -25,17 +26,18 @@ class DatasetWriter:
     def get_corrected(self) -> List[str]:
         return self.dataset["_corrected"]  # type: ignore
 
-    def get_two_column_df(self) -> pd.DataFrame:
-        return self.dataset.to_pandas()[["_input", "_target"]]  # type: ignore
-
     def write_csv(self, out_dir: Path):
-        df = self.get_two_column_df()
-        df["prefix"] = self.task_prefix
-        df["prefix _input _target".split()].to_csv(
-            out_dir / f"{self.name}.csv",
-            index=False,
-            header=["prefix", "input_text", "target_text"],
-        )
+        with open(out_dir / f"{self.name}.csv", "w", newline="") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames="prefix input_text target_text".split())
+            writer.writeheader()
+            for row in self.dataset:
+                writer.writerow(
+                    {
+                        "prefix": self.task_prefix,
+                        "input_text": row["_input"],
+                        "target_text": row["_target"],
+                    }
+                )
 
     def write_texts(self, out_dir: Path):
         with open(out_dir / f"{self.name}-input.txt", "w") as fp:
