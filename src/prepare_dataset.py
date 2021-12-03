@@ -24,7 +24,7 @@ class DataArgs:
 
 
 def main(data_args: DataArgs):
-    c4_200m = C4200MDatasetLoader(take_n=1_000_000).get_dataset()
+    c4_200m = C4200MDatasetLoader(take_n=2_000).get_dataset()
     features = c4_200m.features
     jfleg = JFLEGDatasetLoader("validation").get_dataset().shuffle(42).cast(features)
     jfleg_eval = jfleg.select(range(1000))
