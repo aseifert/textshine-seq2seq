@@ -19,7 +19,7 @@ This is needed for torch.multiprocessing's file_descriptor based sharing strateg
 docs: https://pytorch.org/docs/master/multiprocessing.html#file-descriptor-file-descriptor
 gh issue: https://github.com/pytorch/pytorch/issues/973#issuecomment-346405667
 """
-set_rlimit(limit=16384)
+set_rlimit(limit=4096)
 
 
 @dataclass
