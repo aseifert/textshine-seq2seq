@@ -14,7 +14,6 @@ vars:
 stages:
   prepare-data:
     cmd: python -m src.prepare_dataset
-      && errant_parallel -orig ${final-data-eval-orig} -cor ${final-data-eval-cor} -out ${edits-gold}
     deps:
       - src/prepare_dataset.py
       - src/data.py
@@ -22,6 +21,13 @@ stages:
       - ${final-data-train}
       - ${final-data-eval}
       - ${final-data-test}
+  prepare-data-errant-eval:
+    cmd: errant_parallel -orig ${final-data-eval-orig} -cor ${final-data-eval-cor} -out ${edits-gold}
+    deps:
+      - ${final-data-eval-orig}
+      - ${final-data-eval-cor}
+    outs:
+      - ${edits-gold}
   train:
     cmd: python -m src.train
       --model_name=${model_name}
