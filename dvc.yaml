@@ -6,10 +6,10 @@ vars:
   - final-data-eval-cor: data/eval-target.txt
   - final-data-test-orig: data/test-input.txt
   - final-data-test-cor: data/test-target.txt
-  - final-model: outputs/best_model/pytorch_model.bin
+  - final-model: models/best_model/pytorch_model.bin
   - final-predictions: outputs/predictions.txt
   - edits-hyp: outputs/edits-hyp.txt
-  - edits-gold: outputs/edits-gold.txt
+  - edits-gold: data/edits-gold.txt
   - results: results.json
 stages:
   prepare-data:

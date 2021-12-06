@@ -35,7 +35,7 @@ class DataArgs:
     train_csv: Path = Path(os.environ.get("SM_CHANNEL_TRAIN_CSV", PROJ / "data/train.csv"))
     eval_csv: Optional[Path] = Path(os.environ.get("SM_CHANNEL_EVAL_CSV", PROJ / "data/eval.csv"))
     edits_gold: Optional[Path] = Path(
-        os.environ.get("SM_CHANNEL_EDITS_GOLD", PROJ / "outputs/edits-gold.txt")
+        os.environ.get("SM_CHANNEL_EDITS_GOLD", PROJ / "data/edits-gold.txt")
     )
     task_prefix: str = "Grammar"
 
