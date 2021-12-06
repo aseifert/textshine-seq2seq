@@ -1,3 +1,4 @@
+import os
 from dataclasses import asdict, dataclass
 from functools import partial
 from pathlib import Path
@@ -30,9 +31,12 @@ class ModelArgs:
 
 @dataclass
 class DataArgs:
-    train_csv: Path = PROJ_HOME / "data/train.csv"
-    eval_csv: Optional[Path] = PROJ_HOME / "data/eval.csv"
-    out: Path = PROJ_HOME / "models/"
+    models_dir: Path = Path(os.environ.get("SM_MODEL_DIR", PROJ / "models/"))
+    train_csv: Path = Path(os.environ.get("SM_CHANNEL_TRAIN_CSV", PROJ / "data/train.csv"))
+    eval_csv: Optional[Path] = Path(os.environ.get("SM_CHANNEL_EVAL_CSV", PROJ / "data/eval.csv"))
+    edits_gold: Optional[Path] = Path(
+        os.environ.get("SM_CHANNEL_EDITS_GOLD", PROJ / "outputs/edits-gold.txt")
+    )
     task_prefix: str = "Grammar"
 
 
@@ -57,7 +61,8 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     t5_args.num_train_epochs = train_args.num_train_epochs
     if train_args.use_wandb:
         t5_args.wandb_project = "hf-writing-assistant"
-    t5_args.output_dir = str(data_args.out)
+    t5_args.output_dir = str(data_args.models_dir)
+    t5_args.best_model_dir = str(data_args.models_dir / "best_model")
     t5_args.overwrite_output_dir = True
     t5_args.evaluate_generated_text = True
     t5_args.evaluate_during_training = True
@@ -78,7 +83,7 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     for df in [train_df, eval_df]:
         df["prefix"] = clean_task_prefix(data_args.task_prefix)
     original_sents = eval_df["input_text"].tolist() if eval_df is not None else None
-    gold_edits = load_gold_edits(PROJ / "outputs/edits-gold.txt") if data_args.eval_csv else None
+    gold_edits = load_gold_edits(data_args.edits_gold) if data_args.eval_csv else None
     assert len(gold_edits) == len(original_sents) == len(eval_df)  # type: ignore
 
     def _get_precision_recall_f05_score(targets, predictions, key: str):

@@ -30,6 +30,10 @@ stages:
       - ${edits-gold}
   train:
     cmd: python -m src.train
+      --models_dir=${model_name}
+      --train_csv=${final-data-train}
+      --eval_csv=${final-data-eval}
+      --edits_gold=${edits_gold}
       --model_name=${model_name}
       --batch_size=${batch_size}
       --learning_rate=${learning_rate}
@@ -44,6 +48,7 @@ stages:
       - src/train.py
       - ${final-data-train}
       - ${final-data-eval}
+      - ${edits-gold}
     outs:
       - ${final-model}
   tag:
