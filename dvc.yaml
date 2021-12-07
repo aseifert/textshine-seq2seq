@@ -33,7 +33,7 @@ stages:
       --models_dir=${model_name}
       --train_csv=${final-data-train}
       --eval_csv=${final-data-eval}
-      --edits_gold=${edits_gold}
+      --edits_gold=${edits-gold}
       --model_name=${model_name}
       --batch_size=${batch_size}
       --learning_rate=${learning_rate}
