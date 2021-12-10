@@ -13,14 +13,12 @@ from src.data import (
     PieDatasetLoader,
     WiDatasetLoader,
 )
-
-PWD = Path(__file__).parent
-PROJ_HOME = PWD.parent
+from src.utils import PROJ
 
 
 @dataclass
 class DataArgs:
-    out_dir: Path = PROJ_HOME / "data/"
+    out_dir: Path = PROJ / "data/"
 
 
 def main(data_args: DataArgs):

@@ -7,10 +7,7 @@ from tqdm import tqdm
 from transformers import HfArgumentParser, pipeline  # type: ignore
 from transformers.pipelines.base import KeyDataset  # type: ignore
 
-from src.utils import clean_task_prefix, errant_tokenize
-
-PWD = Path(__file__).parent
-PROJ_HOME = PWD.parent
+from src.utils import PROJ, clean_task_prefix, errant_tokenize
 
 
 @dataclass
@@ -24,8 +21,8 @@ class ModelArgs:
 
 @dataclass
 class DataArgs:
-    test_csv: Path = PROJ_HOME / "data/test.csv"
-    out_path: Path = PROJ_HOME / "predictions.txt"
+    test_csv: Path = PROJ / "data/test.csv"
+    out_path: Path = PROJ / "predictions.txt"
     task_prefix: str = "Grammar"
 
 

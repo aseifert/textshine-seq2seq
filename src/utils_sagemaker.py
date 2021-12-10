@@ -7,7 +7,6 @@ load_dotenv()
 
 
 def init_sagemaker(role_name: str, inside_sagemaker: bool = False):
-
     role = session = None
 
     if inside_sagemaker:
@@ -22,12 +21,11 @@ def init_sagemaker(role_name: str, inside_sagemaker: bool = False):
         role = sagemaker.get_execution_role()
         session = sagemaker.Session(default_bucket=sagemaker_session_bucket)
     else:
-
         iam_client = boto3.client("iam")
         role = iam_client.get_role(RoleName=role_name)["Role"]["Arn"]
         session = sagemaker.Session()
 
-    return {"role": role, "session": session}
+    return role, session
 
 
 def download_model(model, sess):

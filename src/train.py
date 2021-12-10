@@ -11,9 +11,6 @@ from transformers import HfArgumentParser  # type: ignore
 from src.eval import get_precision_recall_f05_score
 from src.utils import PROJ, clean_task_prefix, load_gold_edits, set_rlimit
 
-PWD = Path(__file__).parent
-PROJ_HOME = PWD.parent
-
 """
 Increase number of file descriptors that can be opened.
 This is needed for torch.multiprocessing's file_descriptor based sharing strategy.

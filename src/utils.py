@@ -5,8 +5,7 @@ from pathlib import Path
 
 import wandb
 
-PWD = Path(__file__).parent.resolve()
-PROJ = PWD.parent.resolve()
+PROJ = Path(__file__).parents[1].resolve()
 
 _ERRANT_TOKENIZER_MAPPINGs = [
     (" .", "."),
