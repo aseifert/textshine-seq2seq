@@ -1,9 +1,21 @@
 import errant
 import pandas as pd
+import spacy
 
 from src.utils import PROJ, errant_tokenize, load_gold_edits
 
-annotator = errant.load("en")
+
+def get_spacy_model(lang: str):
+    model = None
+    try:
+        model = spacy.load(lang)
+    except OSError:
+        spacy.cli.download(lang)  # type: ignore
+        model = spacy.load(lang)
+    return model
+
+
+annotator = errant.load("en", nlp=get_spacy_model("en"))
 
 
 def _get_edits(o: str, c: str):

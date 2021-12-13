@@ -29,11 +29,9 @@ class ModelArgs:
 @dataclass
 class DataArgs:
     models_dir: Path = Path(os.environ.get("SM_MODEL_DIR", PROJ / "models/"))
-    train_csv: Path = Path(os.environ.get("SM_CHANNEL_TRAIN_CSV", PROJ / "data/train.csv"))
-    eval_csv: Optional[Path] = Path(os.environ.get("SM_CHANNEL_EVAL_CSV", PROJ / "data/eval.csv"))
-    edits_gold: Optional[Path] = Path(
-        os.environ.get("SM_CHANNEL_EDITS_GOLD", PROJ / "data/edits-gold.txt")
-    )
+    train_csv: Path = Path(PROJ / "data/train.csv")
+    eval_csv: Optional[Path] = Path(PROJ / "data/eval.csv")
+    edits_gold: Optional[Path] = Path(PROJ / "data/edits-gold.txt")
     task_prefix: str = "Grammar"
 
 
@@ -46,7 +44,20 @@ class TrainingArgs:
     use_wandb: bool = True
 
 
+def _sagemaker_fix_data_args(data_args: DataArgs, sagemaker_path: Path) -> DataArgs:
+    data_args.train_csv = sagemaker_path / data_args.train_csv.name
+    data_args.eval_csv = sagemaker_path / data_args.eval_csv.name if data_args.eval_csv else None
+    data_args.edits_gold = (
+        sagemaker_path / data_args.edits_gold.name if data_args.edits_gold else None
+    )
+    print("fixed", data_args)
+    return data_args
+
+
 def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -> None:
+    if "SM_CHANNEL_DATA" in os.environ:
+        data_args = _sagemaker_fix_data_args(data_args, Path(os.environ["SM_CHANNEL_DATA"]))
+
     for path in asdict(data_args).values():
         if path and isinstance(path, Path):
             assert path.exists(), f"{path} does not exist"
@@ -68,6 +79,7 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     t5_args.use_multiprocessing = False
     default_model_type = "mt5" if "mt5" in model_args.model_name else "t5"
     model_type = (model_args.model_type or default_model_type).lower()
+
     model = T5Model(
         model_type=model_type,
         model_name=model_args.model_name,
@@ -84,6 +96,7 @@ def main(model_args: ModelArgs, data_args: DataArgs, train_args: TrainingArgs) -
     assert len(gold_edits) == len(original_sents) == len(eval_df)  # type: ignore
 
     def _get_precision_recall_f05_score(targets, predictions, key: str):
+        Path(PROJ / "outputs").mkdir(parents=True, exist_ok=True)  # make sure dir exists
         with open(PROJ / "outputs/tgts.txt", "w") as fp:
             fp.write("\n".join(targets))
         with open(PROJ / "outputs/preds.txt", "w") as fp:

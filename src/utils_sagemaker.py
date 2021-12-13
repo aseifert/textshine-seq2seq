@@ -1,9 +1,13 @@
+import os
+import shutil
+
 import boto3
 import sagemaker
 from dotenv import load_dotenv
 from sagemaker.s3 import S3Downloader
 
 load_dotenv()
+WANDB_API_KEY = os.environ.get("WANDB_API_KEY")
 
 
 def init_sagemaker(role_name: str, inside_sagemaker: bool = False):
@@ -33,4 +37,19 @@ def download_model(model, sess):
         s3_uri=model.model_data,  # S3 URI where the trained model is located
         local_path=".",  # local path where *.tar.gz will be saved
         sagemaker_session=sess,  # Sagemaker session used for training the model
+    )
+
+
+def prepare_dir(sagemaker_path, local_src_path, sagemaker_src_path):
+    shutil.rmtree(sagemaker_path)
+    shutil.copytree(local_src_path, sagemaker_src_path)
+    shutil.copyfile(
+        local_src_path / "requirements.sagemaker.txt", sagemaker_path / "requirements.txt"
+    )
+
+
+def create_s3_input(s3_path: str, content_type: str):
+    return sagemaker.inputs.TrainingInput(
+        s3_data=s3_path,
+        content_type=content_type,
     )
