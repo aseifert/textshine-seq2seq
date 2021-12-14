@@ -25,8 +25,8 @@ if __name__ == "__main__":
     hyperparameters = {
         "batch_size": 16,
         "model_name": "t5-base",
-        "learning_rate": 4e-4,
-        "num_train_epochs": 1,
+        "learning_rate": 5e-4,
+        "num_train_epochs": 10,
         "task_prefix": "Grammar",
     }
 
