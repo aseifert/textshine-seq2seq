@@ -29,9 +29,9 @@ class ModelArgs:
 @dataclass
 class DataArgs:
     models_dir: Path = Path(os.environ.get("SM_MODEL_DIR", PROJ / "models/"))
-    train_csv: Path = Path(PROJ / "data/train.csv")
-    eval_csv: Optional[Path] = Path(PROJ / "data/eval.csv")
-    edits_gold: Optional[Path] = Path(PROJ / "data/edits-gold.txt")
+    train_csv: str = str(Path(PROJ / "data/train.csv"))
+    eval_csv: Optional[str] = str(Path(PROJ / "data/eval.csv"))
+    edits_gold: Optional[str] = str(Path(PROJ / "data/edits-gold.txt"))
     task_prefix: str = "Grammar"
 
 
