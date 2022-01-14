@@ -11,6 +11,7 @@ vars:
   - edits-hyp: outputs/edits-hyp.txt
   - edits-gold: data/edits-gold.txt
   - results: results.json
+  - models-dir: models/
 stages:
   prepare-data:
     cmd: python -m src.prepare_dataset
@@ -30,7 +31,7 @@ stages:
       - ${edits-gold}
   train:
     cmd: python -m src.train
-      --models_dir=${model_name}
+      --models_dir=${models-dir}
       --train_csv=${final-data-train}
       --eval_csv=${final-data-eval}
       --edits_gold=${edits-gold}
