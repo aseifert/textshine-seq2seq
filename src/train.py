@@ -9,7 +9,14 @@ from simpletransformers.t5 import T5Args, T5Model  # type: ignore
 from transformers import HfArgumentParser  # type: ignore
 
 from src.eval import get_precision_recall_f05_score
-from src.utils import PROJ, clean_task_prefix, load_gold_edits, set_rlimit
+from src.utils import (
+    IN_COLAB,
+    PROJ,
+    clean_task_prefix,
+    load_gold_edits,
+    set_rlimit,
+    set_sharing_strategy,
+)
 
 """
 Increase number of file descriptors that can be opened.
@@ -17,7 +24,10 @@ This is needed for torch.multiprocessing's file_descriptor based sharing strateg
 docs: https://pytorch.org/docs/master/multiprocessing.html#file-descriptor-file-descriptor
 gh issue: https://github.com/pytorch/pytorch/issues/973#issuecomment-346405667
 """
-set_rlimit(limit=4096)
+if IN_COLAB:
+    set_sharing_strategy(new_strategy="file_system")
+else:
+    set_rlimit(limit=4096)
 
 
 @dataclass

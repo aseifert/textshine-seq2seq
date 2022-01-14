@@ -7,6 +7,13 @@ import wandb
 
 PROJ = Path(__file__).parents[1].resolve()
 
+try:
+    import google.colab  # type: ignore
+
+    IN_COLAB = True
+except ModuleNotFoundError:
+    IN_COLAB = False
+
 _ERRANT_TOKENIZER_MAPPINGs = [
     (" .", "."),
     (" ,", ","),
@@ -94,6 +101,12 @@ def log_metrics(args_path: Path, results_path: Path, predictions_path: Path):
 def set_rlimit(limit: int) -> None:
     rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
     resource.setrlimit(resource.RLIMIT_NOFILE, (limit, rlimit[1]))
+
+
+def set_sharing_strategy(new_strategy="file_system") -> None:
+    import torch.multiprocessing
+
+    torch.multiprocessing.set_sharing_strategy(new_strategy=new_strategy)
 
 
 def clean_task_prefix(task_prefix: str) -> str:
